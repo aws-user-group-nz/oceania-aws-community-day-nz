@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Oceania Virtual Community Day 2025</title>
+    <meta name="description"
+        content="The inaugural virtual edition of the annual, user-run AWS technical conference in Oceania.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=3">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="container header-inner">
+            <a href="index.html" class="logo">
+                <img src="favicon.svg" alt="AWS Oceania" style="height: 32px; margin-right: 0.5rem; width: auto;">
+                AWS <span>Oceania</span>
+            </a>
+            <div class="header-actions">
+                <nav>
+                    <ul id="nav-links">
+                        <li><a href="index.html" class="active">Home</a></li>
+                        <li><a href="speakers.html">Speakers</a></li>
+                        <li><a href="schedule.html">Schedule</a></li>
+                        <li><a href="#sponsors">Sponsors</a></li>
+                    </ul>
+                </nav>
+                <a id="header-github-btn" class="header-icon-btn" href="#" target="_blank"
+                    aria-label="GitHub Repository" style="display: none;">
+                    <i class="fab fa-github"></i>
+                </a>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Dark Mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="mobile-menu-btn" aria-label="Toggle Menu">☰</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero animated-bg">
+        <div class="container hero-content">
+            <h1 id="hero-headline">AWS Oceania Virtual Community Day 2025</h1>
+            <p id="hero-subheadline">Connect, Learn, and Share with the AWS Community.</p>
+
+            <div class="hero-meta" id="hero-date">
+                <!-- Injected via JS -->
+            </div>
+
+            <div class="countdown" id="countdown">
+                <!-- Injected via JS -->
+            </div>
+
+            <div id="hero-cta-container">
+                <!-- Smart Buttons injected here: Watch Live, Register, etc. -->
+                <button class="btn btn-primary" id="btn-register-trigger">Register Now</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Smart CFP Section (Visible only when active) -->
+    <section id="cfp-section"
+        style="display: none; background-color: var(--color-squid-ink-light); color: white; text-align: center;">
+        <div class="container">
+            <h2 style="font-size: 2rem; margin-bottom: 1rem;">Call for Papers is Open!</h2>
+            <p style="margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">We are looking for
+                speakers! Share your AWS story with the community.</p>
+            <a href="#" id="cfp-link" target="_blank" class="btn btn-primary">Submit a Talk</a>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about">
+        <div class="container">
+            <h2 class="section-title">About the Event</h2>
+            <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+                <p style="font-size: 1.1rem; margin-bottom: 1.5rem;">
+                    AWS Community Day Oceania is the inaugural virtual edition of the bi-annual, user-run AWS technical
+                    conference. Planned, organized, and delivered by AWS user group community leaders across the region,
+                    this online event brings together AWS users to share knowledge and experiences.
+                </p>
+                <p>
+                    All presentations are delivered by fellow AWS users, fostering peer-to-peer learning and community
+                    connection—wherever you are.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Organizers Section -->
+    <section id="organizers">
+        <div class="container">
+            <h2 class="section-title">Organizing Committee</h2>
+            <div class="organizers-grid" id="organizers-container">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Sponsors Section -->
+    <section id="sponsors" style="background-color: var(--color-light-gray);">
+        <div class="container">
+            <h2 class="section-title">Our Sponsors</h2>
+            <div class="sponsors-grid" id="sponsors-container">
+                <!-- Injected via JS -->
+                <div class="sponsor-card">Placeholder</div>
+                <div class="sponsor-card">Placeholder</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq">
+        <div class="container">
+            <h2 class="section-title">FAQ</h2>
+            <div style="max-width: 700px; margin: 0 auto;" id="faq-container">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-content">
+            <h3>AWS Oceania Community</h3>
+            <p>Made with ❤️ by the AWS Community.</p>
+            <div id="social-buttons-container" class="social-buttons">
+                <!-- Injected via JS -->
+            </div>
+            <div
+                style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; opacity: 0.7; font-size: 0.9rem;">
+                <a href="#">Code of Conduct</a>
+                <a href="#">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Registration Modal -->
+    <div class="modal-overlay" id="reg-modal">
+        <div class="modal">
+            <button class="modal-close" id="reg-modal-close">&times;</button>
+
+            <div id="reg-form-container">
+                <h2 style="margin-bottom: 1.5rem; text-align: center;">Join the Community Day</h2>
+                <form id="reg-form">
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" required placeholder="Jane Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" required placeholder="jane@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="role">Job Role</label>
+                        <select id="role">
+                            <option value="developer">Developer</option>
+                            <option value="architect">Solutions Architect</option>
+                            <option value="student">Student</option>
+                            <option value="manager">Manager</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Complete Registration</button>
+                </form>
+            </div>
+
+            <!-- Success State -->
+            <div class="calendar-options" id="reg-success">
+                <div style="font-size: 3rem; color: #48bb78; margin-bottom: 1rem;">✓</div>
+                <h3>You're In!</h3>
+                <p>Add the event to your calendar so you don't miss out.</p>
+                <div style="display: flex; gap: 1rem; flex-direction: column; margin-top: 1rem;">
+                    <a href="#" class="btn btn-outline" id="cal-google" target="_blank">Add to Google Calendar</a>
+                    <a href="#" class="btn btn-outline" id="cal-ics">Download .ICS</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

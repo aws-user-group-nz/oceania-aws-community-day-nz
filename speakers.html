@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speakers - AWS Oceania VCD 2025</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=3">
+    <style>
+        .speakers-grid-page {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 400px));
+            gap: 2rem;
+            margin-top: 2rem;
+            justify-items: center;
+            justify-content: center;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .speaker-card-full {
+            background: var(--color-white);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: transform var(--transition-fast);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .speaker-card-full:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .speaker-img-wrapper {
+            height: 250px;
+            overflow: hidden;
+            background: var(--color-light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .speaker-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center center;
+            display: block;
+        }
+
+        .speaker-info {
+            padding: 1.5rem;
+        }
+
+        .speaker-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .speaker-title {
+            color: var(--color-smile-orange);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .speaker-bio {
+            font-size: 0.9rem;
+            color: var(--color-text-light);
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="container header-inner">
+            <a href="index.html" class="logo">
+                <img src="favicon.svg" alt="AWS Oceania" style="height: 32px; margin-right: 0.5rem; width: auto;">
+                AWS <span>Oceania</span>
+            </a>
+            <div class="header-actions">
+                <nav>
+                    <ul id="nav-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="speakers.html" class="active">Speakers</a></li>
+                        <li><a href="schedule.html">Schedule</a></li>
+                        <li><a href="index.html#sponsors">Sponsors</a></li>
+                    </ul>
+                </nav>
+                <a id="header-github-btn" class="header-icon-btn" href="#" target="_blank"
+                    aria-label="GitHub Repository" style="display: none;">
+                    <i class="fab fa-github"></i>
+                </a>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Dark Mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="mobile-menu-btn" aria-label="Toggle Menu">☰</button>
+            </div>
+        </div>
+    </header>
+
+    <section>
+        <div class="container">
+            <h1 class="section-title">Our Speakers</h1>
+            <p style="text-align: center; max-width: 600px; margin: 0 auto 3rem auto;">
+                Meet the cloud experts, builders, and innovators sharing their knowledge at this year's event.
+            </p>
+
+            <div id="speakers-grid-container" class="speakers-grid-page">
+                <!-- Injected via JS -->
+                <p style="grid-column: 1/-1; text-align: center;">Loading speakers...</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container footer-content">
+            <p>Made with ❤️ by the AWS Community.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>

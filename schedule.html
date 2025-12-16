@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule - AWS Oceania VCD 2025</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=3">
+    <style>
+        .schedule-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .schedule-controls select {
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--color-border);
+            background: var(--color-white);
+            color: var(--color-text-main);
+            font-size: 1rem;
+        }
+
+        .schedule-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .session-card {
+            background: var(--color-white);
+            padding: 2rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            gap: 2rem;
+            transition: transform var(--transition-fast);
+        }
+
+        .session-card:hover {
+            transform: translateX(5px);
+            border-left: 4px solid var(--color-smile-orange);
+        }
+
+        .session-time {
+            min-width: 150px;
+            font-weight: 700;
+            color: var(--color-smile-orange);
+            font-size: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .session-details {
+            flex: 1;
+        }
+
+        .session-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .session-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: var(--color-text-light);
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+
+        .tag {
+            background: var(--color-light-gray);
+            padding: 0.25rem 0.75rem;
+            border-radius: 100px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .session-speaker {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 500;
+        }
+
+        .session-speaker img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        @media (max-width: 768px) {
+            .session-card {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="container header-inner">
+            <a href="index.html" class="logo">
+                <img src="favicon.svg" alt="AWS Oceania" style="height: 32px; margin-right: 0.5rem; width: auto;">
+                AWS <span>Oceania</span>
+            </a>
+            <div class="header-actions">
+                <nav>
+                    <ul id="nav-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="speakers.html">Speakers</a></li>
+                        <li><a href="schedule.html" class="active">Schedule</a></li>
+                        <li><a href="index.html#sponsors">Sponsors</a></li>
+                    </ul>
+                </nav>
+                <a id="header-github-btn" class="header-icon-btn" href="#" target="_blank"
+                    aria-label="GitHub Repository" style="display: none;">
+                    <i class="fab fa-github"></i>
+                </a>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Dark Mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="mobile-menu-btn" aria-label="Toggle Menu">☰</button>
+            </div>
+        </div>
+    </header>
+
+    <section>
+        <div class="container">
+            <h1 class="section-title">Event Schedule</h1>
+
+            <div class="schedule-controls">
+                <select id="filter-timezone">
+                    <option value="local">Your Timezone (Detected)</option>
+                    <option value="event">Event Timezone (Pacific/Auckland)</option>
+                    <option value="custom">Custom Timezone</option>
+                </select>
+                <select id="custom-timezone" style="display: none;">
+                    <!-- Options will be populated dynamically -->
+                </select>
+                <select id="filter-track">
+                    <option value="all">All Tracks</option>
+                    <!-- Options will be dynamically populated from schedule data -->
+                </select>
+            </div>
+
+            <div id="schedule-container" class="schedule-list">
+                <!-- Injected via JS -->
+                <p style="text-align: center;">Loading schedule...</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container footer-content">
+            <p>Made with ❤️ by the AWS Community.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
