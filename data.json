@@ -8,7 +8,7 @@
     "registration_enabled": false,
     "live_stream_link": "https://www.twitch.tv/awscdo",
     "sessionize_api_url": "https://sessionize.com/api/v2/demo/view/All",
-    "hero_headline": "AWS Oceania Virtual Community Day 2026 - Test Run",
+    "hero_headline": "AWS Oceania Virtual Community Day 2026",
     "hero_subheadline": "The second virtual edition of the annual, user-run AWS technical conference.",
     "hero_date_text": "April 11, 2026 | Virtual Event",
     "registration_api_url": "YOUR_AWS_LAMBDA_URL_HERE",
