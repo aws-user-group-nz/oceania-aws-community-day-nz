@@ -59,6 +59,46 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    // Date helpers (ensure comparisons use event timezone)
+    function normalizeDateString(dateStr) {
+        return (dateStr || '').split('T')[0];
+    }
+
+    function getDateStringInTimeZone(date, timeZone) {
+        try {
+            return new Intl.DateTimeFormat('en-CA', {
+                timeZone,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).format(date);
+        } catch (e) {
+            return date.toISOString().split('T')[0];
+        }
+    }
+
+    function getCurrentPhase() {
+        const eventTimezone = appData.config?.event_timezone || 'Pacific/Auckland';
+        const todayStr = getDateStringInTimeZone(new Date(), eventTimezone);
+        const cfpStartStr = normalizeDateString(appData.config?.cfp_start_date);
+        const cfpEndStr = normalizeDateString(appData.config?.cfp_end_date);
+        const eventDateStr = normalizeDateString(appData.config?.event_date);
+
+        if (cfpStartStr && cfpEndStr && todayStr >= cfpStartStr && todayStr <= cfpEndStr) {
+            return 'cfp';
+        }
+
+        if (eventDateStr && todayStr === eventDateStr) {
+            return 'event';
+        }
+
+        if (appData.config?.registration_enabled) {
+            return 'registration';
+        }
+
+        return 'always';
+    }
+
     // 1. Fetch Data
     async function fetchData() {
         try {
@@ -424,21 +464,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (appData.config.hero_subheadline) heroSub.textContent = appData.config.hero_subheadline;
         if (appData.config.hero_date_text) heroDate.textContent = appData.config.hero_date_text;
 
-        // Smart Logic: Dates
-        const today = new Date();
-        const cfpStart = new Date(appData.config.cfp_start_date);
-        const cfpEnd = new Date(appData.config.cfp_end_date);
+        // Smart Logic: Dates (use event timezone for comparisons)
+        const eventTimezone = appData.config.event_timezone || 'Pacific/Auckland';
         const eventDate = new Date(appData.config.event_date);
-
-        // formatting event date string YYYY-MM-DD for comparison
-        const eventDateStr = eventDate.toISOString().split('T')[0];
-        const todayStr = today.toISOString().split('T')[0];
+        const eventDateStr = normalizeDateString(appData.config.event_date);
+        const todayStr = getDateStringInTimeZone(new Date(), eventTimezone);
+        const cfpStartStr = normalizeDateString(appData.config.cfp_start_date);
+        const cfpEndStr = normalizeDateString(appData.config.cfp_end_date);
+        const currentPhase = getCurrentPhase();
 
         // Smart CTA Logic (Priority: CFP > Watch Live > Register)
         if (heroCtaContainer) {
             heroCtaContainer.innerHTML = ''; // Clear existing
 
-            if (today >= cfpStart && today <= cfpEnd) {
+            if (currentPhase === 'cfp' && cfpStartStr && cfpEndStr) {
                 // 1. CFP is Active
                 const btn = document.createElement('a');
                 btn.href = appData.config.cfp_link;
@@ -453,35 +492,35 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Also hide countdown if CFP is active (to avoid "Event Started" confusion if dates overlap)
                 if (countdownContainer) countdownContainer.style.display = 'none';
 
+            } else if (currentPhase === 'event') {
+                // Event Day (Watch Live)
+                const btn = document.createElement('a');
+                btn.href = appData.config.live_stream_link;
+                btn.className = 'btn btn-primary';
+                btn.textContent = 'Watch Live Now 🔴';
+                btn.target = '_blank';
+                heroCtaContainer.appendChild(btn);
+                if (cfpSection) cfpSection.style.display = 'none';
+
+            } else if (currentPhase === 'registration' && appData.config.registration_enabled) {
+                // Registration Open
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-primary';
+                btn.textContent = 'Register Now';
+                btn.addEventListener('click', openModal);
+                heroCtaContainer.appendChild(btn);
+                if (cfpSection) cfpSection.style.display = 'none';
+
+                // Only start countdown if NOT in CFP mode
+                startCountdown(eventDate);
             } else {
                 // Not CFP phase, ensure countdown is visible
                 if (countdownContainer) countdownContainer.style.display = 'flex';
 
-                if (todayStr === eventDateStr) {
-                    // 2. Event Day (Watch Live)
-                    const btn = document.createElement('a');
-                    btn.href = appData.config.live_stream_link;
-                    btn.className = 'btn btn-primary';
-                    btn.textContent = 'Watch Live Now 🔴';
-                    btn.target = '_blank';
-                    heroCtaContainer.appendChild(btn);
-                    if (cfpSection) cfpSection.style.display = 'none';
-
-                } else if (appData.config.registration_enabled) {
-                    // 3. Registration Open
-                    const btn = document.createElement('button');
-                    btn.className = 'btn btn-primary';
-                    btn.textContent = 'Register Now';
-                    btn.addEventListener('click', openModal);
-                    heroCtaContainer.appendChild(btn);
-                    if (cfpSection) cfpSection.style.display = 'none';
-
-                } else {
-                    const msg = document.createElement('span');
-                    msg.textContent = 'Registration coming soon / Event ended';
-                    heroCtaContainer.appendChild(msg);
-                    if (cfpSection) cfpSection.style.display = 'none';
-                }
+                const msg = document.createElement('span');
+                msg.textContent = 'Registration coming soon / Event ended';
+                heroCtaContainer.appendChild(msg);
+                if (cfpSection) cfpSection.style.display = 'none';
 
                 // Only start countdown if NOT in CFP mode
                 startCountdown(eventDate);
@@ -515,22 +554,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Render FAQ
         if (faqContainer && appData.faq) {
-            // Determine current phase
-            const today = new Date();
-            const cfpStart = new Date(appData.config.cfp_start_date);
-            const cfpEnd = new Date(appData.config.cfp_end_date);
-            const eventDate = new Date(appData.config.event_date);
-            const eventDateStr = eventDate.toISOString().split('T')[0];
-            const todayStr = today.toISOString().split('T')[0];
-
-            let currentPhase = 'always'; // default
-            if (today >= cfpStart && today <= cfpEnd) {
-                currentPhase = 'cfp';
-            } else if (todayStr === eventDateStr) {
-                currentPhase = 'event';
-            } else if (appData.config.registration_enabled) {
-                currentPhase = 'registration';
-            }
+            // Determine current phase (uses event timezone)
+            const currentPhase = getCurrentPhase();
 
             // Filter FAQs based on phase
             const filteredFaqs = appData.faq.filter(item => {
