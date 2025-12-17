@@ -140,11 +140,45 @@
             </div>
             <div
                 style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; opacity: 0.7; font-size: 0.9rem;">
-                <a href="#">Code of Conduct</a>
-                <a href="#">Privacy Policy</a>
+                <a href="#" id="footer-coc-link">Code of Conduct</a>
+                <a href="https://awsug.nz/code-of-conduct" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
             </div>
         </div>
     </footer>
+
+    <!-- Code of Conduct Modal -->
+    <div class="modal-overlay" id="coc-modal">
+        <div class="modal modal-wide">
+            <button class="modal-close" id="coc-modal-close" aria-label="Close Code of Conduct">&times;</button>
+            <h2 style="margin-bottom: 1rem;">Code of Conduct</h2>
+            <p style="margin-bottom: 1rem;">We firmly believe in the value and importance of an environment where all
+                AWS
+                Community Day participants feel welcome and safe. The purpose of our AWS events is to foster exchange of
+                technical knowledge and encourage community discussion and participation. The terms of this Code of
+                Conduct are non-negotiable and behavior that runs counter to it will not be tolerated. By attending this
+                event, you agree to respect and follow these rules.</p>
+            <p style="margin-bottom: 0.75rem;">We expect the following from all participants (including AWS employees,
+                attendees, vendors, sponsors, speakers, volunteers, and guests):</p>
+            <ul class="coc-list" style="margin-bottom: 1rem;">
+                <li>You will behave in a way as to create a safe and supportive environment for all event participants.
+                </li>
+                <li>You will not engage in disruptive speech or behavior or otherwise interfere with the event or other
+                    individuals’ participation in the event.</li>
+                <li>You will not engage in any form of harassing, offensive, discriminatory, or threatening speech or
+                    behavior, including (but not limited to) relating to race, gender, gender identity and expression,
+                    national origin, religion, disability, marital status, age, sexual orientation, military or veteran
+                    status, or other protected category.</li>
+                <li>You will comply with the instructions of event and moderator staff.</li>
+                <li>You will comply with all applicable laws.</li>
+            </ul>
+            <p style="margin-bottom: 0.75rem;">If a participant engages in inappropriate behavior, the organizers may
+                take any action they deem appropriate, including warning the offender or expulsion from the event. If
+                you are being harassed, notice that someone else is being harassed, or have any other concerns, please
+                report it to an organizer immediately.</p>
+            <p style="margin-bottom: 0;">In short, let's be excellent to each other! This code of conduct was adapted
+                from the AWS Community Code of Conduct.</p>
+        </div>
+    </div>
 
     <!-- Registration Modal -->
     <div class="modal-overlay" id="reg-modal">

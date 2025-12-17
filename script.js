@@ -26,6 +26,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const regSuccess = document.getElementById('reg-success');
     const btnGoogle = document.getElementById('cal-google');
     const btnIcs = document.getElementById('cal-ics');
+    const cocLink = document.getElementById('footer-coc-link');
+    const cocModal = document.getElementById('coc-modal');
+    const cocModalClose = document.getElementById('coc-modal-close');
 
     // --- Core Functions ---
 
@@ -587,13 +590,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // 5. Registration Modal
+    function openOverlay(modalEl) {
+        if (modalEl) modalEl.classList.add('open');
+    }
+
+    function closeOverlay(modalEl) {
+        if (modalEl) modalEl.classList.remove('open');
+    }
+
     function openModal() {
-        if (regModal) regModal.classList.add('open');
+        openOverlay(regModal);
     }
 
     function closeModal() {
         if (regModal) {
-            regModal.classList.remove('open');
+            closeOverlay(regModal);
             // Reset form logic if needed, but keeping state showing success is fine
         }
     }
@@ -602,7 +613,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     /* Close on outside click */
     window.addEventListener('click', (e) => {
         if (e.target === regModal) closeModal();
+        if (e.target === cocModal) closeOverlay(cocModal);
     });
+
+    if (cocLink) {
+        cocLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            openOverlay(cocModal);
+        });
+    }
+
+    if (cocModalClose) {
+        cocModalClose.addEventListener('click', () => closeOverlay(cocModal));
+    }
 
     if (regForm) {
         regForm.addEventListener('submit', async (e) => {

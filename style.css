@@ -412,6 +412,12 @@ section {
   box-shadow: var(--shadow-lg);
 }
 
+.modal.modal-wide {
+  max-width: 760px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
 .modal-overlay.open .modal {
   transform: translateY(0);
 }
@@ -447,6 +453,16 @@ section {
   /* Ensure contrast */
   color: var(--color-text-main);
   font-size: 1rem;
+}
+
+.modal .coc-list {
+  list-style: disc;
+  padding-left: 1.25rem;
+  color: var(--color-text-main);
+}
+
+.modal .coc-list li {
+  margin-bottom: 0.75rem;
 }
 
 /* Schedule Contrast Fix */
