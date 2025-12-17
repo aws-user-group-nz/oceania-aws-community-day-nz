@@ -1,168 +1,186 @@
 {
-    "config": {
-        "event_date": "2026-04-15",
-        "event_timezone": "Pacific/Auckland",
-        "cfp_start_date": "2025-12-01",
-        "cfp_end_date": "2026-01-31",
-        "cfp_link": "https://sessionize.com/app/organizer/event/demo/cfp",
-        "registration_enabled": false,
-        "live_stream_link": "https://www.twitch.tv/awscdo",
-        "sessionize_api_url": "https://sessionize.com/api/v2/demo/view/All",
-        "hero_headline": "AWS Oceania Virtual Community Day 2026 - Test Run",
-        "hero_subheadline": "The second virtual edition of the annual, user-run AWS technical conference.",
-        "hero_date_text": "April 15, 2026 | Virtual Event",
-        "registration_api_url": "YOUR_AWS_LAMBDA_URL_HERE",
-        "faq_ask_link": "mailto:organizers@aws-oceania.com?subject=Question for FAQ",
-        "show_speakers": false,
-        "show_schedule": false,
-        "show_sponsors": false,
-        "socials": {
-            "linkedin": "https://www.linkedin.com/company/aws-user-group-aotearoa",
-            "github": "https://github.com/aws-user-group-nz/oceania-aws-community-day-nz",
-            "meetup": "https://www.meetup.com/amazon-web-services-wellington-user-group",
-            "twitch": "https://www.twitch.tv/awscdo",
-            "youtube": "https://www.youtube.com/@awscdo",
-            "discord": "https://discord.gg/awsugnz"
-        }
+  "config": {
+    "event_date": "2026-04-11",
+    "event_timezone": "Pacific/Auckland",
+    "cfp_start_date": "2025-12-21",
+    "cfp_end_date": "2026-01-31",
+    "cfp_link": "https://sessionize.com/oceania-virtual-aws-community-day",
+    "registration_enabled": false,
+    "live_stream_link": "https://www.twitch.tv/awscdo",
+    "sessionize_api_url": "https://sessionize.com/api/v2/demo/view/All",
+    "hero_headline": "AWS Oceania Virtual Community Day 2026 - Test Run",
+    "hero_subheadline": "The second virtual edition of the annual, user-run AWS technical conference.",
+    "hero_date_text": "April 11, 2026 | Virtual Event",
+    "registration_api_url": "YOUR_AWS_LAMBDA_URL_HERE",
+    "faq_ask_link": "",
+    "show_speakers": false,
+    "show_schedule": false,
+    "show_sponsors": false,
+    "socials": {
+      "linkedin": "https://www.linkedin.com/company/aws-user-group-aotearoa",
+      "github": "https://github.com/aws-user-group-nz/oceania-aws-community-day-nz",
+      "meetup": "https://www.meetup.com/amazon-web-services-wellington-user-group",
+      "twitch": "https://www.twitch.tv/awscdo",
+      "youtube": "https://www.youtube.com/@awscdo",
+      "discord": "https://discord.gg/awsugnz"
+    }
+  },
+  "sponsors": [
+  ],
+  "organizers": [
+    {
+      "name": "Arshad Zackeriya",
+      "role": "Treasurer",
+      "image": "https://assets.awsug.nz/images/arshad-zackeriya-awsfanboy.svg",
+      "linkedin": "https://www.linkedin.com/in/arshad-zackeriya-713b821b"
     },
-    "sponsors": [
-        {
-            "name": "AWS",
-            "tier": "Platinum",
-            "logo": "https://assets.awsug.nz/icons/aws-white-orange.svg",
-            "url": "https://aws.amazon.com"
-        },
-        {
-            "name": "Datacom",
-            "tier": "Gold",
-            "logo": "https://assets.awsug.nz/logos/datacom-primary-white.svg",
-            "url": "https://datacom.com/nz/en"
-        }
-    ],
-    "organizers": [
-        {
-            "name": "Jane Doe",
-            "role": "Lead Organizer",
-            "image": "https://api.dicebear.com/7.x/avataaars/svg?seed=Jane",
-            "linkedin": "#"
-        },
-        {
-            "name": "John Smith",
-            "role": "Co-Organizer",
-            "image": "https://api.dicebear.com/7.x/avataaars/svg?seed=John",
-            "linkedin": "#"
-        }
-    ],
-    "faq": [
-        {
-            "question": "Is this event free?",
-            "answer": "Yes! AWS Community Day is a free event run by the community for the community.",
-            "phase": "always"
-        },
-        {
-            "question": "What topics are you looking for?",
-            "answer": "We welcome talks on any AWS-related topic! This includes architecture, serverless, AI/ML, security, cost optimization, DevOps, data analytics, and more. Share your real-world experiences, lessons learned, or innovative solutions.",
-            "phase": "cfp"
-        },
-        {
-            "question": "How long should my talk be?",
-            "answer": "Most sessions are 20-30 minutes, including Q&A. We also welcome lightning talks (10-15 minutes) for quick insights and tips.",
-            "phase": "cfp"
-        },
-        {
-            "question": "Do I need to be an AWS expert to speak?",
-            "answer": "Not at all! We value diverse perspectives. Whether you're a beginner sharing your learning journey or an expert diving deep into advanced topics, your story matters. Real-world experiences and lessons learned are just as valuable as technical deep-dives.",
-            "phase": "cfp"
-        },
-        {
-            "question": "When will I know if my talk is accepted?",
-            "answer": "We'll review all submissions after the CFP closes and notify speakers within a few weeks. Keep an eye on your email!",
-            "phase": "cfp"
-        },
-        {
-            "question": "How do I register?",
-            "answer": "Simply click the 'Register Now' button and fill out the registration form. It only takes a minute!",
-            "phase": "registration"
-        },
-        {
-            "question": "Will I receive a confirmation email?",
-            "answer": "Yes! After registering, you'll receive a confirmation email with event details and calendar links. Make sure to check your spam folder if you don't see it.",
-            "phase": "registration"
-        },
-        {
-            "question": "What platform will the event be on?",
-            "answer": "This is a virtual event. We'll stream live on Twitch and provide links to join interactive sessions. All registered attendees will receive access details closer to the event date.",
-            "phase": "registration"
-        },
-        {
-            "question": "Will sessions be recorded?",
-            "answer": "Absolutely. All sessions will be available on our YouTube channel after the event, so you can catch up on anything you missed.",
-            "phase": "always"
-        },
-        {
-            "question": "How do I access the live stream?",
-            "answer": "Click the 'Watch Live Now' button on the homepage, or visit our Twitch channel directly. The link will be available on the event day.",
-            "phase": "event"
-        },
-        {
-            "question": "Can I ask questions during sessions?",
-            "answer": "Yes! Most sessions include Q&A time. You can ask questions in the chat during the live stream, and speakers will address them.",
-            "phase": "event"
-        }
-    ],
-    "speakers": [
-        {
-            "id": "1",
-            "fullName": "Dr. Werner Vogels",
-            "tagLine": "CTO, Amazon.com",
-            "bio": "Dr. Werner Vogels is Chief Technology Officer at Amazon.com where he is responsible for driving the company's customer-centric technology vision.",
-            "profilePicture": "https://avatar.iran.liara.run/public/boy?username=Speaker1"
-        },
-        {
-            "id": "2",
-            "fullName": "Jeff Barr",
-            "tagLine": "Chief Evangelist, AWS",
-            "bio": "Jeff Barr is Chief Evangelist or AWS. He started this blog in 2004 and has been writing posts just about non-stop ever since.",
-            "profilePicture": "https://avatar.iran.liara.run/public/boy?username=Speaker1"
-        }
-    ],
-    "schedule": [
-        {
-            "id": "101",
-            "title": "Keynote: The Future of Cloud",
-            "description": "Join us for the opening keynote.",
-            "startsAt": "2025-10-15T09:00:00",
-            "endsAt": "2025-10-15T10:00:00",
-            "speakers": [
-                "1"
-            ],
-            "roomId": 123,
-            "room": "Main Stage",
-            "category": "Keynote"
-        },
-        {
-            "id": "102",
-            "title": "Serverless at Scale",
-            "description": "Deep dive into Lambda concurrency.",
-            "startsAt": "2025-10-15T10:15:00",
-            "endsAt": "2025-10-15T11:00:00",
-            "speakers": [
-                "2"
-            ],
-            "roomId": 124,
-            "room": "Track A",
-            "category": "Serverless"
-        },
-        {
-            "id": "103",
-            "title": "AI/ML on AWS",
-            "description": "Building GenAI apps with Bedrock.",
-            "startsAt": "2025-10-15T10:15:00",
-            "endsAt": "2025-10-15T11:00:00",
-            "speakers": [],
-            "roomId": 125,
-            "room": "Track B",
-            "category": "AI/ML"
-        }
-    ]
+    {
+      "name": "Casey Orr",
+      "role": "Sponsor Coordinator",
+      "image": "https://assets.awsug.nz/images/casey-orr.svg",
+      "linkedin": "https://www.linkedin.com/in/casey-orr-97280a163"
+    },
+    {
+      "name": "Chamila de Alwis",
+      "role": "Sponsor Coordinator",
+      "image": "https://assets.awsug.nz/images/chamila-de-alwis.svg",
+      "linkedin": "https://www.linkedin.com/in/chamilad"
+    },
+    {
+      "name": "John Ajera",
+      "role": "Website Technical Lead",
+      "image": "https://assets.awsug.nz/images/johna-ajera.svg",
+      "linkedin": "https://www.linkedin.com/in/john-ajera"
+    },
+    {
+      "name": "Mike Rewiri-Thorsen",
+      "role": "Studio Technical Lead",
+      "image": "https://assets.awsug.nz/images/mike-rewiri-thorsen.svg",
+      "linkedin": "https://www.linkedin.com/in/michaelrewirithorsen"
+    },
+    {
+      "name": "Paul Dunlop",
+      "role": "Conference Chair",
+      "image": "https://assets.awsug.nz/images/paul-dunlop.svg",
+      "linkedin": "http://linkedin.com/in/pauldunlopnz"
+    },
+    {
+      "name": "Ramaswamy Arunachalam",
+      "role": "Marketing Lead",
+      "image": "https://assets.awsug.nz/images/ramaswamy-arunachalam.svg",
+      "linkedin": "https://www.linkedin.com/in/ramstack"
+    }
+  ],
+  "faq": [
+    {
+      "question": "Is this event free?",
+      "answer": "Yes! AWS Community Day is a free event run by the community for the community.",
+      "phase": "always"
+    },
+    {
+      "question": "What topics are you looking for?",
+      "answer": "We welcome talks on any AWS-related topic! This includes architecture, serverless, AI/ML, security, cost optimization, DevOps, data analytics, and more. Share your real-world experiences, lessons learned, or innovative solutions.",
+      "phase": "cfp"
+    },
+    {
+      "question": "How long should my talk be?",
+      "answer": "Most sessions are 20-30 minutes, including Q&A (Optional). We also welcome lightning talks (10-15 minutes) for quick insights and tips.",
+      "phase": "cfp"
+    },
+    {
+      "question": "Do I need to be an AWS expert to speak?",
+      "answer": "Not at all! We value diverse perspectives. Whether you're a beginner sharing your learning journey or an expert diving deep into advanced topics, your story matters. Real-world experiences and lessons learned are just as valuable as technical deep-dives.",
+      "phase": "cfp"
+    },
+    {
+      "question": "When will I know if my talk is accepted?",
+      "answer": "We'll review all submissions after the CFP closes and notify speakers within a few weeks. Keep an eye on your email!",
+      "phase": "cfp"
+    },
+    {
+      "question": "How do I register?",
+      "answer": "Simply click the 'Register Now' button and fill out the registration form. It only takes a minute!",
+      "phase": "registration"
+    },
+    {
+      "question": "Will I receive a confirmation email?",
+      "answer": "Yes! After registering, you'll receive a confirmation email with event details and calendar links. Make sure to check your spam folder if you don't see it.",
+      "phase": "registration"
+    },
+    {
+      "question": "What platform will the event be on?",
+      "answer": "This is a virtual event. We'll stream live on Twitch and provide links to join interactive sessions. All registered attendees will receive access details closer to the event date.",
+      "phase": "registration"
+    },
+    {
+      "question": "Will sessions be recorded?",
+      "answer": "Absolutely. All sessions will be available on our YouTube channel after the event, so you can catch up on anything you missed.",
+      "phase": "always"
+    },
+    {
+      "question": "How do I access the live stream?",
+      "answer": "Click the 'Watch Live Now' button on the homepage, or visit our Twitch channel directly. The link will be available on the event day.",
+      "phase": "event"
+    },
+    {
+      "question": "Can I ask questions during sessions?",
+      "answer": "Yes! Most sessions include Q&A time. You can ask questions in the chat during the live stream, and speakers will address them.",
+      "phase": "event"
+    }
+  ],
+  "speakers": [
+    {
+      "id": "1",
+      "fullName": "Dr. Werner Vogels",
+      "tagLine": "CTO, Amazon.com",
+      "bio": "Dr. Werner Vogels is Chief Technology Officer at Amazon.com where he is responsible for driving the company's customer-centric technology vision.",
+      "profilePicture": "https://avatar.iran.liara.run/public/boy?username=Speaker1"
+    },
+    {
+      "id": "2",
+      "fullName": "Jeff Barr",
+      "tagLine": "Chief Evangelist, AWS",
+      "bio": "Jeff Barr is Chief Evangelist or AWS. He started this blog in 2004 and has been writing posts just about non-stop ever since.",
+      "profilePicture": "https://avatar.iran.liara.run/public/boy?username=Speaker1"
+    }
+  ],
+  "schedule": [
+    {
+      "id": "101",
+      "title": "Keynote: The Future of Cloud",
+      "description": "Join us for the opening keynote.",
+      "startsAt": "2025-10-15T09:00:00",
+      "endsAt": "2025-10-15T10:00:00",
+      "speakers": [
+          "1"
+      ],
+      "roomId": 123,
+      "room": "Main Stage",
+      "category": "Keynote"
+    },
+    {
+      "id": "102",
+      "title": "Serverless at Scale",
+      "description": "Deep dive into Lambda concurrency.",
+      "startsAt": "2025-10-15T10:15:00",
+      "endsAt": "2025-10-15T11:00:00",
+      "speakers": [
+        "2"
+      ],
+      "roomId": 124,
+      "room": "Track A",
+      "category": "Serverless"
+    },
+    {
+      "id": "103",
+      "title": "AI/ML on AWS",
+      "description": "Building GenAI apps with Bedrock.",
+      "startsAt": "2025-10-15T10:15:00",
+      "endsAt": "2025-10-15T11:00:00",
+      "speakers": [],
+      "roomId": 125,
+      "room": "Track B",
+      "category": "AI/ML"
+    }
+  ]
 }
