@@ -30,8 +30,9 @@
   "organizers": [
     {
       "name": "Arshad Zackeriya",
-      "role": "AWS Hero",
+      "role": "AWS Hero | Treasurer",
       "image": "https://assets.awsug.nz/images/arshad-zackeriya-awsfanboy.svg",
+      "linkedin": "https://www.linkedin.com/in/arshad-zackeriya-713b821b",
       "url": "https://zack.kiwi"
     },
     {
@@ -42,7 +43,7 @@
     },
     {
       "name": "Chamila de Alwis",
-      "role": "Sponsor Coordinator",
+      "role": "AWS Community Builder | Sponsor Coordinator",
       "image": "https://assets.awsug.nz/images/chamila-de-alwis.svg",
       "linkedin": "https://www.linkedin.com/in/chamilad"
     },
@@ -67,7 +68,7 @@
     },
     {
       "name": "Ramaswamy Arunachalam",
-      "role": "Marketing Lead",
+      "role": "AWS Community Builder | Marketing Lead",
       "image": "https://assets.awsug.nz/images/ramaswamy-arunachalam.svg",
       "linkedin": "https://www.linkedin.com/in/ramstack"
     }
