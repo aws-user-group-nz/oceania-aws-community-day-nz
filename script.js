@@ -545,12 +545,58 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Render Organizers
         if (organizersContainer && appData.organizers) {
+            const isLinkedInUrl = (u) => /(^|\/\/)(www\.)?linkedin\.com\//i.test(u || '');
+
+            const organizerLinksHtml = (org) => {
+                const links = [];
+                const seen = new Set();
+
+                const pushLink = ({ href, label, iconClass, ariaLabel }) => {
+                    if (!href || seen.has(href)) return;
+                    seen.add(href);
+                    links.push(
+                        `<a href="${href}" target="_blank" rel="noopener noreferrer" title="${label}" aria-label="${ariaLabel}" style="color:var(--color-smile-orange); margin: 0 0.25rem;"><i class="${iconClass}"></i></a>`
+                    );
+                };
+
+                // Backward-compatible: `linkedin` may be the only URL we have.
+                if (org.linkedin) {
+                    if (isLinkedInUrl(org.linkedin)) {
+                        pushLink({
+                            href: org.linkedin,
+                            label: 'LinkedIn',
+                            iconClass: 'fab fa-linkedin-in',
+                            ariaLabel: `${org.name} on LinkedIn`
+                        });
+                    } else {
+                        pushLink({
+                            href: org.linkedin,
+                            label: 'Website',
+                            iconClass: 'fas fa-link',
+                            ariaLabel: `${org.name} website`
+                        });
+                    }
+                }
+
+                // New optional field
+                if (org.url) {
+                    pushLink({
+                        href: org.url,
+                        label: 'Website',
+                        iconClass: 'fas fa-link',
+                        ariaLabel: `${org.name} website`
+                    });
+                }
+
+                return links.length ? `<div style="margin-top: 0.25rem;">${links.join('')}</div>` : '';
+            };
+
             organizersContainer.innerHTML = appData.organizers.map(org => `
                 <div class="organizer-card">
                     <img src="${org.image}" alt="${org.name}" class="organizer-img">
                     <h4 style="margin-bottom:0.25rem;">${org.name}</h4>
                     <p style="color:var(--color-text-light); font-size:0.9rem; margin-bottom:0.5rem;">${org.role}</p>
-                    <a href="${org.linkedin}" target="_blank" style="color:var(--color-smile-orange);"><i class="fab fa-linkedin"></i></a>
+                    ${organizerLinksHtml(org)}
                 </div>
             `).join('');
         }
