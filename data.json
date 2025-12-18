@@ -30,9 +30,9 @@
   "organizers": [
     {
       "name": "Arshad Zackeriya",
-      "role": "Treasurer",
+      "role": "AWS Hero",
       "image": "https://assets.awsug.nz/images/arshad-zackeriya-awsfanboy.svg",
-      "linkedin": "https://www.linkedin.com/in/arshad-zackeriya-713b821b"
+      "url": "https://zack.kiwi"
     },
     {
       "name": "Casey Orr",
@@ -50,7 +50,8 @@
       "name": "John Ajera",
       "role": "Website Technical Lead",
       "image": "https://assets.awsug.nz/images/johna-ajera.svg",
-      "linkedin": "https://www.linkedin.com/in/john-ajera"
+      "linkedin": "https://www.linkedin.com/in/john-ajera",
+      "url": "https://jajera.github.io/gitprofile"
     },
     {
       "name": "Mike Rewiri-Thorsen",
