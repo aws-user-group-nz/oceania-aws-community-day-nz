@@ -110,6 +110,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             initApp();
         } catch (error) {
             console.error('Error fetching data:', error);
+            const navUl = document.getElementById('nav-links');
+            if (navUl) navUl.style.visibility = 'visible';
         }
     }
 
@@ -856,16 +858,55 @@ END:VCALENDAR`;
 
         // Highlight active nav
         const currentPath = window.location.pathname.split('/').pop() || 'index.html';
-        const navLinks = navUl.querySelectorAll('a');
-        navLinks.forEach(link => {
-            const linkHref = link.getAttribute('href');
-            // Check based on filename preference
-            if (linkHref === currentPath || (linkHref.startsWith('index.html') && currentPath === '')) {
-                link.classList.add('active');
-            } else {
-                link.classList.remove('active');
-            }
+        const navLinks = Array.from(navUl.querySelectorAll('a'));
+        const homeLink = navLinks.find((link) => link.getAttribute('href') === 'index.html');
+        const sponsorsLink = navLinks.find((link) => {
+            const href = link.getAttribute('href') || '';
+            return href === '#sponsors' || href.endsWith('index.html#sponsors');
         });
+
+        const setActiveLink = (activeLink) => {
+            navLinks.forEach((link) => link.classList.remove('active'));
+            if (activeLink) activeLink.classList.add('active');
+        };
+
+        const isHomePage = currentPath === '' || currentPath === 'index.html';
+        const applyActiveNavState = () => {
+            if (!isHomePage) {
+                const pageLink = navLinks.find((link) => link.getAttribute('href') === currentPath);
+                setActiveLink(pageLink || homeLink || null);
+                return;
+            }
+
+            const hash = (window.location.hash || '').toLowerCase();
+            if (hash === '#sponsors' && sponsorsLink) {
+                setActiveLink(sponsorsLink);
+                return;
+            }
+
+            // Scroll-aware fallback: highlight Sponsors when section is in view.
+            const sponsorsSection = document.getElementById('sponsors');
+            if (sponsorsSection && sponsorsLink) {
+                const rect = sponsorsSection.getBoundingClientRect();
+                const viewportMid = window.innerHeight * 0.5;
+                if (rect.top <= viewportMid && rect.bottom >= viewportMid) {
+                    setActiveLink(sponsorsLink);
+                    return;
+                }
+            }
+
+            setActiveLink(homeLink || null);
+        };
+
+        // Keep nav state in sync across interactions.
+        navLinks.forEach((link) => {
+            link.addEventListener('click', () => {
+                setTimeout(applyActiveNavState, 0);
+            });
+        });
+        window.addEventListener('hashchange', applyActiveNavState);
+        if (isHomePage) window.addEventListener('scroll', applyActiveNavState, { passive: true });
+        applyActiveNavState();
 
         // Setup Header GitHub Button
         const headerGithubBtn = document.getElementById('header-github-btn');
@@ -875,6 +916,9 @@ END:VCALENDAR`;
             headerGithubBtn.style.display = 'inline-flex';
             console.log('GitHub Button Activated:', ghUrl);
         }
+
+        // Reveal nav only after dynamic links are ready (prevents button flash).
+        navUl.style.visibility = 'visible';
     }
 
     // --- Init ---
