@@ -15,7 +15,7 @@
     "faq_ask_link": "",
     "show_speakers": false,
     "show_schedule": false,
-    "show_sponsors": false,
+    "show_sponsors": true,
     "socials": {
       "linkedin": "https://www.linkedin.com/company/aws-user-group-aotearoa",
       "github": "https://github.com/aws-user-group-nz/oceania-aws-community-day-nz",
@@ -26,6 +26,42 @@
     }
   },
   "sponsors": [
+    {
+      "name": "AWS",
+      "tier": "Platinum",
+      "logo": "assets/images/sponsors/aws.svg",
+      "url": "https://aws.amazon.com"
+    },
+    {
+      "name": "Datacom",
+      "tier": "Gold",
+      "logo": "assets/images/sponsors/datacom.svg",
+      "url": "https://datacom.com/nz/en/"
+    },
+    {
+      "name": "Deloitte",
+      "tier": "Gold",
+      "logo": "assets/images/sponsors/deloitte.svg",
+      "url": "https://kiwibank.com"
+    },
+    {
+      "name": "CyberCX",
+      "tier": "Silver",
+      "logo": "assets/images/sponsors/cybercx.svg",
+      "url": "https://deloitte.co.nz/"
+    },
+    {
+      "name": "Mantel",
+      "tier": "Silver",
+      "logo": "assets/images/sponsors/mantel.svg",
+      "url": "https://mantelgroup.com.au/"
+    },
+    {
+      "name": "MongoDB",
+      "tier": "Silver",
+      "logo": "assets/images/sponsors/mongodb.svg",
+      "url": "https://mongodb.com/"
+    }
   ],
   "organizers": [
     {

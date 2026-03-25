@@ -535,11 +535,54 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (appData.config.show_sponsors === false) {
             if (sponsorsSection) sponsorsSection.style.display = 'none';
         } else if (sponsorsContainer && appData.sponsors) {
+            const tierClass = (tier) =>
+                String(tier || 'sponsor')
+                    .trim()
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/(^-|-$)/g, '');
+
+            const tierLabel = (tier) => {
+                const normalized = String(tier || '').trim();
+                return normalized ? normalized : 'Sponsors';
+            };
+
+            const tierPriority = ['platinum', 'gold', 'silver', 'bronze', 'community'];
+            const groupedSponsors = appData.sponsors.reduce((acc, sponsor) => {
+                const key = tierClass(sponsor.tier || 'sponsors');
+                if (!acc[key]) {
+                    acc[key] = {
+                        tierKey: key,
+                        tierName: tierLabel(sponsor.tier),
+                        sponsors: []
+                    };
+                }
+                acc[key].sponsors.push(sponsor);
+                return acc;
+            }, {});
+
+            const sortedGroups = Object.values(groupedSponsors).sort((a, b) => {
+                const aIndex = tierPriority.indexOf(a.tierKey);
+                const bIndex = tierPriority.indexOf(b.tierKey);
+                const aRank = aIndex === -1 ? Number.MAX_SAFE_INTEGER : aIndex;
+                const bRank = bIndex === -1 ? Number.MAX_SAFE_INTEGER : bIndex;
+                if (aRank !== bRank) return aRank - bRank;
+                return a.tierName.localeCompare(b.tierName);
+            });
+
             if (sponsorsSection) sponsorsSection.style.display = 'block';
-            sponsorsContainer.innerHTML = appData.sponsors.map(sponsor => `
-                <a href="${sponsor.url}" target="_blank" class="sponsor-card" title="${sponsor.name} (${sponsor.tier})">
-                    <img src="${sponsor.logo}" alt="${sponsor.name}">
-                </a>
+            sponsorsContainer.classList.add('sponsors-grouped');
+            sponsorsContainer.innerHTML = sortedGroups.map(group => `
+                <div class="sponsors-tier-group">
+                    <h3 class="sponsors-tier-title">${group.tierName} Sponsors</h3>
+                    <div class="sponsors-grid">
+                        ${group.sponsors.map(sponsor => `
+                            <a href="${sponsor.url}" target="_blank" class="sponsor-card tier-${tierClass(sponsor.tier)}" title="${sponsor.name} (${sponsor.tier})">
+                                <img src="${sponsor.logo}" alt="${sponsor.name}">
+                            </a>
+                        `).join('')}
+                    </div>
+                </div>
             `).join('');
         }
 
