@@ -430,6 +430,22 @@ section {
   box-shadow: var(--shadow-md);
 }
 
+.sponsor-card--no-link {
+  cursor: default;
+  text-decoration: none;
+  color: inherit;
+}
+
+.sponsor-card--no-link:hover {
+  transform: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.sponsor-card--no-link:hover img {
+  filter: none;
+  transform: none;
+}
+
 .sponsor-card:hover img {
   filter: brightness(1.2) saturate(1.2);
   transform: scale(1.1);

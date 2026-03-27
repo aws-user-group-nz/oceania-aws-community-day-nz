@@ -523,7 +523,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (countdownContainer) countdownContainer.style.display = 'flex';
 
                 const msg = document.createElement('span');
-                msg.textContent = 'Registration coming soon / Event ended';
+                msg.textContent = 'Registration coming soon';
                 heroCtaContainer.appendChild(msg);
                 if (cfpSection) cfpSection.style.display = 'none';
 
@@ -578,11 +578,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div class="sponsors-tier-group">
                     <h3 class="sponsors-tier-title">${group.tierName} Sponsors</h3>
                     <div class="sponsors-grid">
-                        ${group.sponsors.map(sponsor => `
-                            <a href="${sponsor.url}" target="_blank" class="sponsor-card tier-${tierClass(sponsor.tier)}" title="${sponsor.name} (${sponsor.tier})">
-                                <img src="${sponsor.logo}" alt="${sponsor.name}">
-                            </a>
-                        `).join('')}
+                        ${group.sponsors.map((sponsor) => {
+                            const tier = tierClass(sponsor.tier);
+                            const title = `${sponsor.name} (${sponsor.tier})`;
+                            const inner = `<img src="${sponsor.logo}" alt="${sponsor.name}">`;
+                            const url = String(sponsor.url || '').trim();
+                            if (!url) {
+                                return `<div class="sponsor-card sponsor-card--no-link tier-${tier}" title="${title}">${inner}</div>`;
+                            }
+                            return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="sponsor-card tier-${tier}" title="${title}">${inner}</a>`;
+                        }).join('')}
                     </div>
                 </div>
             `).join('');
