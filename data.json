@@ -61,6 +61,12 @@
       "tier": "Silver",
       "logo": "assets/images/sponsors/mongodb.svg",
       "url": "https://mongodb.com/"
+    },
+    {
+      "name": "Feedback Feijoa",
+      "tier": "Community Partner",
+      "logo": "assets/images/sponsors/feedback-feijoa.svg",
+      "url": "https://www.feedbackfeijoa.com/"
     }
   ],
   "organizers": [
