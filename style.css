@@ -256,6 +256,12 @@ nav a.active {
   background: rgba(255, 255, 255, 0.1);
 }
 
+.header-icon-btn img {
+  height: 28px;
+  width: auto;
+  display: block;
+}
+
 .theme-toggle:hover {
   background: rgba(255, 255, 255, 0.1);
 }
