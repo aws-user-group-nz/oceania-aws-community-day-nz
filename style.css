@@ -758,31 +758,18 @@ footer {
    Keynote highlights
    ============================================= */
 
-/* Keynote tag — orange text like session hints / theme accent
-   .tag.tag--keynote beats page-local .tag rules (schedule.html) */
-.tag.tag--keynote {
+/* Keynote + Fireside — same theme orange (Fireside uses Session format id or config session ids) */
+.tag.tag--keynote,
+.tag.tag--fireside {
   background: transparent;
   color: var(--color-smile-orange);
   border: 1px solid var(--color-smile-orange);
 }
 
-/* Keynote session card — gold left border + subtle warm glow */
-.session-card--keynote {
+.session-card--keynote,
+.session-card--fireside {
   border-left-color: var(--color-smile-orange) !important;
   background: linear-gradient(135deg, rgba(255,153,0,0.07) 0%, transparent 60%), var(--color-white);
-}
-
-/* Keynote speaker card ring */
-.speaker-img-wrapper--keynote {
-  box-shadow: 0 0 0 3px var(--color-smile-orange);
-}
-
-.speaker-keynote-badge {
-  margin-top: 0.4rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--color-smile-orange);
-  letter-spacing: 0.03em;
 }
 
 /* =============================================
