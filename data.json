@@ -7,14 +7,15 @@
     "cfp_link": "https://sessionize.com/oceania-virtual-aws-community-day",
     "registration_enabled": false,
     "live_stream_link": "https://www.twitch.tv/awscdo",
-    "sessionize_api_url": "https://sessionize.com/api/v2/demo/view/All",
+    "sessionize_api_url": "https://sessionize.com/api/v2/10u5qims/view/All",
+  "keynote_session_ids": ["1133135"],
     "hero_headline": "AWS Oceania Virtual Community Day 2026",
     "hero_subheadline": "The second virtual edition of the annual, user-run AWS technical conference.",
     "hero_date_text": "April 11, 2026 | Virtual Event",
     "registration_api_url": "YOUR_AWS_LAMBDA_URL_HERE",
     "faq_ask_link": "",
-    "show_speakers": false,
-    "show_schedule": false,
+    "show_speakers": true,
+    "show_schedule": true,
     "show_sponsors": true,
     "socials": {
       "linkedin": "https://www.linkedin.com/company/aws-user-group-aotearoa",
@@ -172,59 +173,6 @@
       "phase": "event"
     }
   ],
-  "speakers": [
-    {
-      "id": "1",
-      "fullName": "Dr. Werner Vogels",
-      "tagLine": "CTO, Amazon.com",
-      "bio": "Dr. Werner Vogels is Chief Technology Officer at Amazon.com where he is responsible for driving the company's customer-centric technology vision.",
-      "profilePicture": "https://avatar.iran.liara.run/public/boy?username=Speaker1"
-    },
-    {
-      "id": "2",
-      "fullName": "Jeff Barr",
-      "tagLine": "Chief Evangelist, AWS",
-      "bio": "Jeff Barr is Chief Evangelist or AWS. He started this blog in 2004 and has been writing posts just about non-stop ever since.",
-      "profilePicture": "https://avatar.iran.liara.run/public/boy?username=Speaker1"
-    }
-  ],
-  "schedule": [
-    {
-      "id": "101",
-      "title": "Keynote: The Future of Cloud",
-      "description": "Join us for the opening keynote.",
-      "startsAt": "2025-10-15T09:00:00",
-      "endsAt": "2025-10-15T10:00:00",
-      "speakers": [
-          "1"
-      ],
-      "roomId": 123,
-      "room": "Main Stage",
-      "category": "Keynote"
-    },
-    {
-      "id": "102",
-      "title": "Serverless at Scale",
-      "description": "Deep dive into Lambda concurrency.",
-      "startsAt": "2025-10-15T10:15:00",
-      "endsAt": "2025-10-15T11:00:00",
-      "speakers": [
-        "2"
-      ],
-      "roomId": 124,
-      "room": "Track A",
-      "category": "Serverless"
-    },
-    {
-      "id": "103",
-      "title": "AI/ML on AWS",
-      "description": "Building GenAI apps with Bedrock.",
-      "startsAt": "2025-10-15T10:15:00",
-      "endsAt": "2025-10-15T11:00:00",
-      "speakers": [],
-      "roomId": 125,
-      "room": "Track B",
-      "category": "AI/ML"
-    }
-  ]
+  "speakers": [],
+  "schedule": []
 }

@@ -107,19 +107,109 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const response = await fetch('data.json');
             appData = await response.json();
-            initApp();
         } catch (error) {
-            console.error('Error fetching data:', error);
+            console.error('Error fetching data.json:', error);
             const navUl = document.getElementById('nav-links');
             if (navUl) navUl.style.visibility = 'visible';
+            return;
         }
+
+        // Render header immediately after data.json — no need to wait for Sessionize
+        initTheme();
+        renderHeader();
+
+        const sessionizeUrl = appData.config?.sessionize_api_url;
+        if (sessionizeUrl) {
+            try {
+                const szResponse = await fetch(sessionizeUrl, { cache: 'no-store' });
+                if (!szResponse.ok) throw new Error(`Sessionize responded ${szResponse.status}`);
+                const raw = await szResponse.json();
+                const { speakers, schedule } = mapSessionizeAll(raw);
+                appData.speakers = speakers;
+                appData.schedule = schedule;
+            } catch (error) {
+                console.error('Error fetching Sessionize data:', error);
+                appData.speakers = [];
+                appData.schedule = [];
+            }
+        } else {
+            appData.speakers = appData.speakers || [];
+            appData.schedule = appData.schedule || [];
+        }
+
+        initApp();
+    }
+
+    function mapSessionizeAll(raw) {
+        const roomMap = {};
+        if (Array.isArray(raw.rooms)) {
+            raw.rooms.forEach(r => { roomMap[r.id] = r.name; });
+        }
+
+        const categoryMap = {};
+        if (Array.isArray(raw.categories)) {
+            raw.categories.forEach(cat => {
+                if (Array.isArray(cat.items)) {
+                    cat.items.forEach(item => { categoryMap[item.id] = item.name; });
+                }
+            });
+        }
+
+        const speakers = (raw.speakers || []).map(s => ({
+            id: s.id,
+            fullName: s.fullName || '',
+            tagLine: s.tagLine || '',
+            bio: s.bio || '',
+            profilePicture: s.profilePicture || '',
+        }));
+
+        const keynoteIds = new Set((appData.config?.keynote_session_ids || []).map(String));
+
+        const schedule = (raw.sessions || [])
+            .filter(s => s.status === 'Accepted')
+            .map(s => {
+                const categoryNames = Array.isArray(s.categoryItems)
+                    ? s.categoryItems.map(id => categoryMap[id]).filter(Boolean)
+                    : [];
+                const isKeynote = s.isPlenumSession === true
+                    || categoryNames.some(n => n.toLowerCase() === 'keynote')
+                    || keynoteIds.has(String(s.id));
+                return {
+                    id: String(s.id),
+                    title: s.title || '',
+                    description: s.description || '',
+                    startsAt: s.startsAt || null,
+                    endsAt: s.endsAt || null,
+                    speakers: Array.isArray(s.speakers) ? s.speakers : [],
+                    room: s.roomId != null ? (roomMap[s.roomId] || 'TBC') : 'TBC',
+                    category: categoryNames.length > 0 ? categoryNames[0] : 'General',
+                    isKeynote,
+                };
+            });
+
+        // Sort: keynotes first, then chronologically; sessions with no time go last
+        schedule.sort((a, b) => {
+            if (a.isKeynote !== b.isKeynote) return a.isKeynote ? -1 : 1;
+            if (!a.startsAt && !b.startsAt) return 0;
+            if (!a.startsAt) return 1;
+            if (!b.startsAt) return -1;
+            return new Date(a.startsAt) - new Date(b.startsAt);
+        });
+
+        // Mark speakers who present a keynote
+        const keynoteSpeakerIds = new Set(
+            schedule.filter(s => s.isKeynote).flatMap(s => s.speakers)
+        );
+        speakers.forEach(sp => { sp.isKeynote = keynoteSpeakerIds.has(sp.id); });
+
+        // Sort speakers: keynote speakers first, then original order
+        speakers.sort((a, b) => (a.isKeynote === b.isKeynote ? 0 : a.isKeynote ? -1 : 1));
+
+        return { speakers, schedule };
     }
 
     // 2. Initialize App
     function initApp() {
-        initTheme();
-        renderHeader();
-
         // Page Specific Init
         if (heroHeadline) initHomePage(); // We are on Home
 
@@ -184,22 +274,131 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Render Functions ---
 
+    function escapeHtml(str) {
+        return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function escapeAttr(str) {
+        return escapeHtml(str).replace(/"/g, '&quot;');
+    }
+
+    function formatBio(bio) {
+        if (!bio) return '';
+        return escapeHtml(bio)
+            .split(/\r?\n\r?\n/)
+            .filter(p => p.trim())
+            .map(p => `<p>${p.replace(/\r?\n/g, '<br>')}</p>`)
+            .join('');
+    }
+
+    // --- Shared Speaker Modal (used on speakers page AND schedule page) ---
+
+    function speakerSlug(name) {
+        return (name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    }
+
+    function ensureSpeakerModal() {
+        if (document.getElementById('speaker-modal-overlay')) return;
+        document.body.insertAdjacentHTML('beforeend', `
+            <div id="speaker-modal-overlay" class="speaker-modal-overlay" role="dialog" aria-modal="true" aria-label="Speaker details">
+                <div class="speaker-modal">
+                    <button class="speaker-modal-close" id="speaker-modal-close" aria-label="Close">&times;</button>
+                    <div class="speaker-modal-header">
+                        <img class="speaker-modal-photo" id="speaker-modal-photo" src="" alt="">
+                        <div class="speaker-modal-meta">
+                            <div class="speaker-modal-name" id="speaker-modal-name"></div>
+                            <div class="speaker-modal-tagline" id="speaker-modal-tagline"></div>
+                        </div>
+                    </div>
+                    <div class="speaker-modal-bio" id="speaker-modal-bio"></div>
+                    <div class="speaker-modal-sessions" id="speaker-modal-sessions" style="display:none;"></div>
+                </div>
+            </div>
+        `);
+        const overlay = document.getElementById('speaker-modal-overlay');
+        document.getElementById('speaker-modal-close').addEventListener('click', closeSpeakerModal);
+        overlay.addEventListener('click', e => { if (e.target === overlay) closeSpeakerModal(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSpeakerModal(); });
+    }
+
+    function closeSpeakerModal() {
+        const overlay = document.getElementById('speaker-modal-overlay');
+        if (overlay) {
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        // Clear hash without scrolling or adding to history
+        if (window.location.hash.startsWith('#speaker-')) {
+            history.replaceState(null, '', window.location.pathname + window.location.search);
+        }
+    }
+
+    function openSpeakerModal(speaker, { updateHash = true } = {}) {
+        ensureSpeakerModal();
+        document.getElementById('speaker-modal-photo').src = speaker.profilePicture;
+        document.getElementById('speaker-modal-photo').alt = speaker.fullName;
+        document.getElementById('speaker-modal-name').textContent = speaker.fullName;
+        document.getElementById('speaker-modal-tagline').textContent = speaker.tagLine;
+        document.getElementById('speaker-modal-bio').innerHTML = formatBio(speaker.bio);
+
+        const sessionsEl = document.getElementById('speaker-modal-sessions');
+        const speakerSessions = (appData.schedule || []).filter(s =>
+            Array.isArray(s.speakers) && s.speakers.includes(speaker.id)
+        );
+        if (speakerSessions.length > 0) {
+            sessionsEl.innerHTML = speakerSessions
+                .map(s => `<div class="speaker-modal-session-item">&ndash; ${escapeHtml(s.title)}</div>`)
+                .join('');
+            sessionsEl.style.display = '';
+        } else {
+            sessionsEl.innerHTML = '';
+            sessionsEl.style.display = 'none';
+        }
+
+        document.getElementById('speaker-modal-overlay').classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        // Update URL hash so the link is shareable
+        if (updateHash) {
+            history.replaceState(null, '', `#speaker-${speakerSlug(speaker.fullName)}`);
+        }
+    }
+
     function renderSpeakers() {
         const container = document.getElementById('speakers-grid-container');
         if (!container || !appData.speakers) return;
 
+        if (appData.speakers.length === 0) {
+            container.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">Speakers will be announced soon.</p>';
+            return;
+        }
+
         container.innerHTML = appData.speakers.map(speaker => `
-            <div class="speaker-card-full">
-                <div class="speaker-img-wrapper">
-                    <img src="${speaker.profilePicture}" alt="${speaker.fullName}" loading="lazy">
+            <div class="speaker-card-full${speaker.isKeynote ? ' speaker-card--keynote' : ''}" id="speaker-${escapeHtml(speakerSlug(speaker.fullName))}" data-speaker-id="${escapeHtml(speaker.id)}" role="button" tabindex="0" aria-label="View ${escapeHtml(speaker.fullName)} profile">
+                <div class="speaker-img-wrapper${speaker.isKeynote ? ' speaker-img-wrapper--keynote' : ''}">
+                    <img src="${escapeHtml(speaker.profilePicture)}" alt="${escapeHtml(speaker.fullName)}" loading="lazy">
                 </div>
-                <div class="speaker-info">
-                    <div class="speaker-name">${speaker.fullName}</div>
-                    <div class="speaker-title">${speaker.tagLine}</div>
-                    <div class="speaker-bio">${speaker.bio}</div>
-                </div>
+                <div class="speaker-name">${escapeHtml(speaker.fullName)}</div>
+                <div class="speaker-title">${escapeHtml(speaker.tagLine)}</div>
+                ${speaker.isKeynote ? '<div class="speaker-keynote-badge">&#9733; Keynote</div>' : ''}
             </div>
         `).join('');
+
+        container.querySelectorAll('.speaker-card-full').forEach(card => {
+            const speaker = appData.speakers.find(s => s.id === card.dataset.speakerId);
+            if (!speaker) return;
+            card.addEventListener('click', () => openSpeakerModal(speaker));
+            card.addEventListener('keydown', e => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSpeakerModal(speaker); }
+            });
+        });
+
+        // Auto-open if URL has a matching speaker hash (e.g. shared link)
+        const hash = window.location.hash.slice(1); // strip '#'
+        if (hash.startsWith('speaker-')) {
+            const speaker = appData.speakers.find(s => speakerSlug(s.fullName) === hash.slice('speaker-'.length));
+            if (speaker) openSpeakerModal(speaker, { updateHash: false });
+        }
     }
 
     function initSchedulePage() {
@@ -275,6 +474,228 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Listeners
         if (trackSelect) trackSelect.addEventListener('change', renderSchedule);
+
+        bindScheduleModalDelegation();
+    }
+
+    function sessionTimeFields(session, timezonePref, eventTimezone) {
+        const parseDate = (dateString) => {
+            if (dateString.includes('Z') || dateString.match(/[+-]\d{2}:\d{2}$/)) {
+                return new Date(dateString);
+            }
+            const [datePart, timePart] = dateString.split('T');
+            const [year, month, day] = datePart.split('-').map(Number);
+            const [hour, minute, second = 0] = (timePart || '').split(':').map(Number);
+            let testDate = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+            let formatted = testDate.toLocaleString('en-US', {
+                timeZone: eventTimezone,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+            const [fmtDate, fmtTime] = formatted.split(', ');
+            const [fmtMonth, fmtDay, fmtYear] = fmtDate.split('/').map(Number);
+            const [fmtHour, fmtMinute] = fmtTime.split(':').map(Number);
+            const hourDiff = hour - fmtHour;
+            const dayDiff = (day - fmtDay) * 24;
+            const totalHours = hourDiff + dayDiff;
+            return new Date(testDate.getTime() - totalHours * 60 * 60 * 1000);
+        };
+
+        const timesKnown = session.startsAt && session.endsAt;
+        let timeStr = 'Time TBA';
+        let dateStr = '';
+        let timezoneAbbr = '';
+        let timezoneSubtext = '';
+
+        if (timesKnown) {
+            const startDate = parseDate(session.startsAt);
+            const endDate = parseDate(session.endsAt);
+            let targetTimezone;
+            if (timezonePref === 'local') {
+                targetTimezone = undefined;
+            } else if (timezonePref === 'custom') {
+                targetTimezone = document.getElementById('custom-timezone')?.value || eventTimezone;
+            } else {
+                targetTimezone = eventTimezone;
+            }
+
+            const timeOpts = { hour: 'numeric', minute: '2-digit', timeZone: targetTimezone };
+            const dateOpts = { month: 'short', day: 'numeric', timeZone: targetTimezone };
+
+            if (timezonePref === 'local') {
+                const startTime = startDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                const endTime = endDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                const startDateLocal = startDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                const endDateLocal = endDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                timeStr = `${startTime} - ${endTime}`;
+                dateStr = startDateLocal !== endDateLocal ? `${startDateLocal} - ${endDateLocal}` : startDateLocal;
+                timezoneSubtext = 'Your Time';
+            } else if (timezonePref === 'custom') {
+                try {
+                    const startTime = startDate.toLocaleTimeString([], timeOpts);
+                    const endTime = endDate.toLocaleTimeString([], timeOpts);
+                    const startDateTz = startDate.toLocaleDateString([], dateOpts);
+                    const endDateTz = endDate.toLocaleDateString([], dateOpts);
+                    timeStr = `${startTime} - ${endTime}`;
+                    dateStr = startDateTz !== endDateTz ? `${startDateTz} - ${endDateTz}` : startDateTz;
+                    const tzParts = Intl.DateTimeFormat('en', { timeZone: targetTimezone, timeZoneName: 'short' }).formatToParts(new Date());
+                    const tzName = tzParts.find(part => part.type === 'timeZoneName')?.value || targetTimezone.split('/').pop();
+                    timezoneAbbr = ` (${tzName})`;
+                    timezoneSubtext = 'Custom Time';
+                } catch (e) {
+                    timeStr = `${startDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} - ${endDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+                    timezoneSubtext = 'Custom Time';
+                }
+            } else {
+                try {
+                    const startTime = startDate.toLocaleTimeString('en-NZ', timeOpts);
+                    const endTime = endDate.toLocaleTimeString('en-NZ', timeOpts);
+                    const startDateTz = startDate.toLocaleDateString('en-NZ', dateOpts);
+                    const endDateTz = endDate.toLocaleDateString('en-NZ', dateOpts);
+                    timeStr = `${startTime} - ${endTime} (NZT)`;
+                    dateStr = startDateTz !== endDateTz ? `${startDateTz} - ${endDateTz}` : startDateTz;
+                    timezoneSubtext = 'Event Time';
+                } catch (e) {
+                    timeStr = `${startDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} - ${endDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} (Local)`;
+                    timezoneSubtext = 'Event Time';
+                }
+            }
+        }
+
+        return { timeStr, dateStr, timezoneAbbr, timesKnown, timezoneSubtext };
+    }
+
+    function ensureScheduleModal() {
+        if (document.getElementById('schedule-modal-overlay')) return;
+        document.body.insertAdjacentHTML('beforeend', `
+            <div id="schedule-modal-overlay" class="schedule-modal-overlay" role="dialog" aria-modal="true" aria-label="Session details">
+                <div class="schedule-modal">
+                    <button type="button" class="schedule-modal-close" id="schedule-modal-close" aria-label="Close">&times;</button>
+                    <div class="schedule-modal-meta" id="schedule-modal-meta"></div>
+                    <div class="schedule-modal-time" id="schedule-modal-time"></div>
+                    <h2 class="schedule-modal-title" id="schedule-modal-title"></h2>
+                    <div class="schedule-modal-description" id="schedule-modal-description"></div>
+                    <div class="schedule-modal-speakers" id="schedule-modal-speakers"></div>
+                </div>
+            </div>
+        `);
+        const overlay = document.getElementById('schedule-modal-overlay');
+        document.getElementById('schedule-modal-close').addEventListener('click', closeScheduleModal);
+        overlay.addEventListener('click', e => { if (e.target === overlay) closeScheduleModal(); });
+    }
+
+    function openScheduleModal(session) {
+        ensureScheduleModal();
+        const timezonePref = document.getElementById('filter-timezone')?.value || 'local';
+        const eventTimezone = 'Pacific/Auckland';
+        const t = sessionTimeFields(session, timezonePref, eventTimezone);
+
+        document.getElementById('schedule-modal-meta').innerHTML = `
+            <span class="tag">${escapeHtml(session.category)}</span>
+            <span class="schedule-modal-room">${escapeHtml(session.room)}</span>
+        `;
+        document.getElementById('schedule-modal-time').innerHTML = `
+            ${t.dateStr ? `<div class="schedule-modal-date">${escapeHtml(t.dateStr)}</div>` : ''}
+            <div class="schedule-modal-time-main">${escapeHtml(t.timeStr)}${escapeHtml(t.timezoneAbbr)}</div>
+            ${t.timesKnown && t.timezoneSubtext ? `<span class="schedule-modal-tz-hint">${escapeHtml(t.timezoneSubtext)}</span>` : ''}
+        `;
+        document.getElementById('schedule-modal-title').textContent = session.title || '';
+        const descEl = document.getElementById('schedule-modal-description');
+        if (session.description && session.description.trim()) {
+            descEl.innerHTML = formatBio(session.description);
+            descEl.style.display = '';
+        } else {
+            descEl.innerHTML = '';
+            descEl.style.display = 'none';
+        }
+        const speakers = (session.speakers || []).map(id => appData.speakers.find(s => s.id === id)).filter(Boolean);
+        const spEl = document.getElementById('schedule-modal-speakers');
+        if (speakers.length) {
+            spEl.innerHTML = speakers.map(s => `
+                <div class="session-speaker session-speaker--clickable" data-speaker-id="${escapeHtml(s.id)}" role="button" tabindex="0" aria-label="View ${escapeAttr(s.fullName)} profile">
+                    <img src="${escapeHtml(s.profilePicture)}" alt="${escapeHtml(s.fullName)}">
+                    <span>${escapeHtml(s.fullName)}</span>
+                </div>
+            `).join('');
+            spEl.querySelectorAll('.session-speaker--clickable').forEach(chip => {
+                const speaker = speakers.find(s => String(s.id) === chip.dataset.speakerId);
+                if (!speaker) return;
+                chip.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    closeScheduleModal();
+                    openSpeakerModal(speaker);
+                });
+            });
+            spEl.style.display = '';
+        } else {
+            spEl.innerHTML = '';
+            spEl.style.display = 'none';
+        }
+
+        document.getElementById('schedule-modal-overlay').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeScheduleModal() {
+        const overlay = document.getElementById('schedule-modal-overlay');
+        if (overlay) {
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    function bindScheduleModalDelegation() {
+        const container = document.getElementById('schedule-container');
+        if (!container || container.dataset.scheduleModalBound === '1') return;
+        container.dataset.scheduleModalBound = '1';
+
+        container.addEventListener('click', (e) => {
+            // Speaker chip click → open speaker modal
+            const speakerChip = e.target.closest('.session-speaker--clickable');
+            if (speakerChip && container.contains(speakerChip)) {
+                e.stopPropagation();
+                const speakerId = speakerChip.dataset.speakerId;
+                const speaker = appData.speakers?.find(s => String(s.id) === String(speakerId));
+                if (speaker) openSpeakerModal(speaker);
+                return;
+            }
+
+            // Session card click → open session modal
+            const card = e.target.closest('.session-card');
+            if (!card || !container.contains(card)) return;
+            const id = card.dataset.sessionId;
+            if (!id || !appData.schedule) return;
+            const session = appData.schedule.find(s => String(s.id) === String(id));
+            if (session) openScheduleModal(session);
+        });
+
+        container.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+
+            const speakerChip = e.target.closest('.session-speaker--clickable');
+            if (speakerChip && container.contains(speakerChip)) {
+                e.preventDefault();
+                const speakerId = speakerChip.dataset.speakerId;
+                const speaker = appData.speakers?.find(s => String(s.id) === String(speakerId));
+                if (speaker) openSpeakerModal(speaker);
+                return;
+            }
+
+            const card = e.target.closest('.session-card');
+            if (!card || !container.contains(card)) return;
+            e.preventDefault();
+            const id = card.dataset.sessionId;
+            const session = appData.schedule?.find(s => String(s.id) === String(id));
+            if (session) openScheduleModal(session);
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeScheduleModal();
+        });
     }
 
     function renderSchedule() {
@@ -283,16 +704,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const timezonePref = document.getElementById('filter-timezone')?.value || 'local';
         const trackPref = document.getElementById('filter-track')?.value || 'all';
+        const eventTimezone = 'Pacific/Auckland';
 
-        // Helper function to normalize category names for comparison (removes slashes, spaces, etc.)
         function normalizeCategory(category) {
             return category.toLowerCase().replace(/[\/\s]/g, '');
         }
 
-        // Filter
         let sessions = appData.schedule;
         if (trackPref !== 'all') {
-            // trackPref is already normalized (from dropdown value), so compare directly
             sessions = sessions.filter(s => normalizeCategory(s.category) === trackPref);
         }
 
@@ -302,159 +721,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         container.innerHTML = sessions.map(session => {
-            // Parse dates - if no timezone specified, assume they're in event timezone
-            const eventTimezone = 'Pacific/Auckland';
-
-            // Parse dates - if no timezone, assume event timezone
-            // Since JS Date parsing doesn't support timezone, we'll use a workaround
-            const parseDate = (dateString) => {
-                if (dateString.includes('Z') || dateString.match(/[+-]\d{2}:\d{2}$/)) {
-                    return new Date(dateString);
-                }
-
-                // Parse components - assume they represent time in event timezone
-                const [datePart, timePart] = dateString.split('T');
-                const [year, month, day] = datePart.split('-').map(Number);
-                const [hour, minute, second = 0] = (timePart || '').split(':').map(Number);
-
-                // Create date as if it's UTC, then we'll adjust using timezone formatting
-                // We need to find the UTC time that, when formatted in event timezone, gives us the desired time
-                // Use iterative approach: try different UTC times until formatting matches
-
-                // Start with UTC assumption
-                let testDate = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
-
-                // Check what this represents in event timezone
-                let formatted = testDate.toLocaleString('en-US', {
-                    timeZone: eventTimezone,
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false
-                });
-
-                const [fmtDate, fmtTime] = formatted.split(', ');
-                const [fmtMonth, fmtDay, fmtYear] = fmtDate.split('/').map(Number);
-                const [fmtHour, fmtMinute] = fmtTime.split(':').map(Number);
-
-                // Calculate offset needed
-                // If formatted time doesn't match desired time, adjust
-                const hourDiff = hour - fmtHour;
-                const dayDiff = (day - fmtDay) * 24;
-                const totalHours = hourDiff + dayDiff;
-
-                // Adjust UTC date
-                return new Date(testDate.getTime() - totalHours * 60 * 60 * 1000);
-            };
-
-            const startDate = parseDate(session.startsAt);
-            const endDate = parseDate(session.endsAt);
-
-            // Determine target timezone
-            let targetTimezone;
-            if (timezonePref === 'local') {
-                targetTimezone = undefined; // Use local timezone
-            } else if (timezonePref === 'custom') {
-                targetTimezone = document.getElementById('custom-timezone')?.value || eventTimezone;
-            } else {
-                targetTimezone = eventTimezone;
-            }
-
-            // Format dates and times with timezone handling
-            let timeStr;
-            let dateStr = '';
-            let timezoneAbbr = '';
-
-            const timeOpts = { hour: 'numeric', minute: '2-digit', timeZone: targetTimezone };
-            const dateOpts = { month: 'short', day: 'numeric', timeZone: targetTimezone };
-
-            if (timezonePref === 'local') {
-                // User's Local Time
-                const startTime = startDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-                const endTime = endDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-                const startDateLocal = startDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
-                const endDateLocal = endDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
-
-                timeStr = `${startTime} - ${endTime}`;
-
-                // Always show date, or if it differs between start and end
-                if (startDateLocal !== endDateLocal) {
-                    dateStr = `${startDateLocal} - ${endDateLocal}`;
-                } else {
-                    // Show date (always display it)
-                    dateStr = startDateLocal;
-                }
-            } else if (timezonePref === 'custom') {
-                // Custom Timezone
-                try {
-                    const startTime = startDate.toLocaleTimeString([], timeOpts);
-                    const endTime = endDate.toLocaleTimeString([], timeOpts);
-                    const startDateTz = startDate.toLocaleDateString([], dateOpts);
-                    const endDateTz = endDate.toLocaleDateString([], dateOpts);
-
-                    timeStr = `${startTime} - ${endTime}`;
-
-                    // Always show date, or if it differs between start and end
-                    if (startDateTz !== endDateTz) {
-                        dateStr = `${startDateTz} - ${endDateTz}`;
-                    } else {
-                        dateStr = startDateTz;
-                    }
-
-                    const tzParts = Intl.DateTimeFormat('en', { timeZone: targetTimezone, timeZoneName: 'short' }).formatToParts(new Date());
-                    const tzName = tzParts.find(part => part.type === 'timeZoneName')?.value || targetTimezone.split('/').pop();
-                    timezoneAbbr = ` (${tzName})`;
-                } catch (e) {
-                    timeStr = `${startDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} - ${endDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
-                    timezoneAbbr = '';
-                }
-            } else {
-                // Event Time (Pacific/Auckland)
-                try {
-                    const startTime = startDate.toLocaleTimeString('en-NZ', timeOpts);
-                    const endTime = endDate.toLocaleTimeString('en-NZ', timeOpts);
-                    const startDateTz = startDate.toLocaleDateString('en-NZ', dateOpts);
-                    const endDateTz = endDate.toLocaleDateString('en-NZ', dateOpts);
-
-                    timeStr = `${startTime} - ${endTime} (NZT)`;
-
-                    // Always show date, or if it differs between start and end
-                    if (startDateTz !== endDateTz) {
-                        dateStr = `${startDateTz} - ${endDateTz}`;
-                    } else {
-                        dateStr = startDateTz;
-                    }
-                } catch (e) {
-                    timeStr = `${startDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} - ${endDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} (Local)`;
-                }
-            }
-
-            // Find Speaker
-            const speakers = session.speakers.map(id => appData.speakers.find(s => s.id === id)).filter(Boolean);
+            const t = sessionTimeFields(session, timezonePref, eventTimezone);
+            const speakers = (session.speakers || []).map(id => appData.speakers.find(s => s.id === id)).filter(Boolean);
             const speakerHtml = speakers.map(s => `
-                <div class="session-speaker">
-                    <img src="${s.profilePicture}" alt="${s.fullName}">
-                    <span>${s.fullName}</span>
+                <div class="session-speaker session-speaker--clickable" data-speaker-id="${escapeHtml(s.id)}" role="button" tabindex="0" aria-label="View ${escapeAttr(s.fullName)} profile">
+                    <img src="${escapeHtml(s.profilePicture)}" alt="${escapeHtml(s.fullName)}">
+                    <span>${escapeHtml(s.fullName)}</span>
                 </div>
             `).join('');
 
+            const keynoteClass = session.isKeynote ? ' session-card--keynote' : '';
+            const keynoteTag = session.isKeynote ? '<span class="tag tag--keynote">&#9733; Keynote</span>' : '';
             return `
-                <div class="session-card">
+                <div class="session-card session-card--interactive${keynoteClass}" data-session-id="${escapeHtml(session.id)}" role="button" tabindex="0" aria-label="View details: ${escapeAttr(session.title)}">
                     <div class="session-time">
-                        ${dateStr ? `<div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.25rem; color: var(--color-text-light);">${dateStr}</div>` : ''}
-                        <div>${timeStr}${timezoneAbbr}</div>
-                        <span style="font-size: 0.8rem; font-weight: normal; color: var(--color-text-light); margin-top:5px;">${timezonePref === 'local' ? 'Your Time' : timezonePref === 'custom' ? 'Custom Time' : 'Event Time'}</span>
+                        ${t.dateStr ? `<div class="session-time-date">${escapeHtml(t.dateStr)}</div>` : ''}
+                        <div>${escapeHtml(t.timeStr)}${escapeHtml(t.timezoneAbbr)}</div>
+                        ${t.timesKnown && t.timezoneSubtext ? `<span class="session-time-hint">${escapeHtml(t.timezoneSubtext)}</span>` : ''}
                     </div>
                     <div class="session-details">
                         <div class="session-meta">
-                            <span class="tag">${session.category}</span>
-                            <span>${session.room}</span>
+                            ${keynoteTag}
+                            <span class="tag">${escapeHtml(session.category)}</span>
+                            <span>${escapeHtml(session.room)}</span>
                         </div>
-                        <div class="session-title">${session.title}</div>
-                        <p style="margin-bottom: 1rem; color: var(--color-text-light);">${session.description}</p>
-                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <div class="session-title">${escapeHtml(session.title)}</div>
+                        <p class="session-card-hint">View abstract &amp; details</p>
+                        <div class="session-speakers-row">
                             ${speakerHtml}
                         </div>
                     </div>
