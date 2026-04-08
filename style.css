@@ -174,6 +174,17 @@ ul {
   border-radius: 2px;
 }
 
+/* Page fade-in on load — opacity only, NO transform on body.
+   Any transform on body breaks position:fixed children (modals). */
+@keyframes page-fadein {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+body {
+  animation: page-fadein 0.18s ease both;
+}
+
 /* Header */
 header {
   background-color: var(--color-squid-ink);
@@ -212,6 +223,7 @@ nav ul {
 nav a {
   font-weight: 500;
   opacity: 0.9;
+  transition: color var(--transition-fast), opacity var(--transition-fast);
 }
 
 nav a:hover,
@@ -739,5 +751,233 @@ footer {
 
   nav ul.is-open {
     transform: translateY(0);
+  }
+}
+
+/* =============================================
+   Keynote highlights
+   ============================================= */
+
+/* Keynote tag — orange text like session hints / theme accent
+   .tag.tag--keynote beats page-local .tag rules (schedule.html) */
+.tag.tag--keynote {
+  background: transparent;
+  color: var(--color-smile-orange);
+  border: 1px solid var(--color-smile-orange);
+}
+
+/* Keynote session card — gold left border + subtle warm glow */
+.session-card--keynote {
+  border-left-color: var(--color-smile-orange) !important;
+  background: linear-gradient(135deg, rgba(255,153,0,0.07) 0%, transparent 60%), var(--color-white);
+}
+
+/* Keynote speaker card ring */
+.speaker-img-wrapper--keynote {
+  box-shadow: 0 0 0 3px var(--color-smile-orange);
+}
+
+.speaker-keynote-badge {
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-smile-orange);
+  letter-spacing: 0.03em;
+}
+
+/* =============================================
+   Shared Modal Base (schedule + speaker)
+   z-index 1100 puts modals above the sticky header (z-index 1000)
+   ============================================= */
+@keyframes modal-fadein {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.schedule-modal-overlay,
+.speaker-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 1100;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.schedule-modal-overlay.active,
+.speaker-modal-overlay.active {
+  display: flex;
+}
+
+.schedule-modal,
+.speaker-modal {
+  background: var(--color-white);
+  color: var(--color-text-main);
+  border-radius: var(--radius-md);
+  max-width: 640px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 2rem;
+  position: relative;
+  animation: modal-fadein 0.18s ease both;
+}
+
+.schedule-modal-close,
+.speaker-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--color-text-light);
+  line-height: 1;
+  padding: 0.25rem;
+  transition: color var(--transition-fast);
+}
+
+.schedule-modal-close:hover,
+.speaker-modal-close:hover {
+  color: var(--color-text-main);
+}
+
+/* Schedule Modal internals */
+.schedule-modal-meta {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: var(--color-text-light);
+}
+
+.schedule-modal-room { font-weight: 500; }
+
+.schedule-modal-time { margin-bottom: 1rem; }
+
+.schedule-modal-date {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  margin-bottom: 0.25rem;
+}
+
+.schedule-modal-time-main {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-smile-orange);
+}
+
+.schedule-modal-tz-hint {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  margin-top: 0.35rem;
+}
+
+.schedule-modal-title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  margin: 0 0 1rem 0;
+  line-height: 1.3;
+  padding-right: 2rem;
+}
+
+.schedule-modal-description {
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: var(--color-text-light);
+  margin-bottom: 1.25rem;
+}
+
+.schedule-modal-description p { margin-bottom: 0.6rem; }
+.schedule-modal-description p:last-child { margin-bottom: 0; }
+
+.schedule-modal-speakers {
+  border-top: 1px solid var(--color-border);
+  padding-top: 1rem;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Clickable speaker chips inside session modal */
+.session-speaker--clickable {
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  padding: 0.25rem 0.5rem;
+  transition: background var(--transition-fast);
+}
+
+.session-speaker--clickable:hover {
+  background: var(--color-light-gray);
+}
+
+/* Speaker Modal internals */
+.speaker-modal { max-width: 620px; }
+
+.speaker-modal-header {
+  display: flex;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+  align-items: flex-start;
+}
+
+.speaker-modal-photo {
+  width: 88px;
+  height: 88px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.speaker-modal-meta { flex: 1; }
+
+.speaker-modal-name {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-smile-orange);
+  margin-bottom: 0.25rem;
+}
+
+.speaker-modal-tagline {
+  color: var(--color-smile-orange);
+  font-weight: 600;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.speaker-modal-bio {
+  font-size: 0.93rem;
+  color: var(--color-text-light);
+  line-height: 1.75;
+  margin-bottom: 1.25rem;
+}
+
+.speaker-modal-bio p { margin-bottom: 0.75rem; }
+.speaker-modal-bio p:last-child { margin-bottom: 0; }
+
+.speaker-modal-sessions {
+  border-top: 1px solid var(--color-border);
+  padding-top: 1rem;
+}
+
+.speaker-modal-session-item {
+  color: var(--color-smile-orange);
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.4rem;
+}
+
+@media (max-width: 480px) {
+  .speaker-modal-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
   }
 }

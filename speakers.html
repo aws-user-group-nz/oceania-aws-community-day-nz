@@ -14,73 +14,59 @@
     <style>
         .speakers-grid-page {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 400px));
+            grid-template-columns: repeat(auto-fill, minmax(170px, 210px));
             gap: 2rem;
-            margin-top: 2rem;
-            justify-items: center;
+            margin: 2rem auto 0;
             justify-content: center;
             max-width: 1400px;
-            margin-left: auto;
-            margin-right: auto;
         }
 
         .speaker-card-full {
-            background: var(--color-white);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            padding: 1.5rem 1rem;
             border-radius: var(--radius-md);
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
-            transition: transform var(--transition-fast);
-            width: 100%;
-            max-width: 400px;
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+            background: transparent;
         }
 
         .speaker-card-full:hover {
             transform: translateY(-5px);
             box-shadow: var(--shadow-md);
+            background: var(--color-white);
         }
 
         .speaker-img-wrapper {
-            height: 250px;
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
             overflow: hidden;
             background: var(--color-light-gray);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            margin-bottom: 1rem;
+            flex-shrink: 0;
         }
 
         .speaker-img-wrapper img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            object-position: center center;
-            display: block;
-        }
-
-        .speaker-info {
-            padding: 1.5rem;
         }
 
         .speaker-name {
-            font-size: 1.25rem;
+            font-size: 1rem;
             font-weight: 700;
             margin-bottom: 0.25rem;
+            line-height: 1.3;
         }
 
         .speaker-title {
             color: var(--color-smile-orange);
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
+            font-size: 0.8rem;
             font-weight: 500;
-        }
-
-        .speaker-bio {
-            font-size: 0.9rem;
-            color: var(--color-text-light);
-            display: -webkit-box;
-            -webkit-line-clamp: 4;
-            line-clamp: 4;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+            line-height: 1.4;
         }
     </style>
 </head>

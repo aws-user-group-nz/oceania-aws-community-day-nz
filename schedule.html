@@ -43,12 +43,45 @@
             box-shadow: var(--shadow-sm);
             display: flex;
             gap: 2rem;
-            transition: transform var(--transition-fast);
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+            border-left: 4px solid transparent;
         }
 
-        .session-card:hover {
+        .session-card--interactive { cursor: pointer; }
+
+        .session-card--interactive:hover,
+        .session-card--interactive:focus-visible {
             transform: translateX(5px);
-            border-left: 4px solid var(--color-smile-orange);
+            border-left-color: var(--color-smile-orange);
+            box-shadow: var(--shadow-md);
+            outline: none;
+        }
+
+        .session-time-date {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--color-text-light);
+        }
+
+        .session-time-hint {
+            font-size: 0.8rem;
+            font-weight: normal;
+            color: var(--color-text-light);
+            margin-top: 5px;
+        }
+
+        .session-card-hint {
+            margin: 0 0 1rem 0;
+            font-size: 0.85rem;
+            color: var(--color-smile-orange);
+            font-weight: 600;
+        }
+
+        .session-speakers-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
 
         .session-time {
@@ -61,9 +94,7 @@
             gap: 0.5rem;
         }
 
-        .session-details {
-            flex: 1;
-        }
+        .session-details { flex: 1; }
 
         .session-title {
             font-size: 1.5rem;
