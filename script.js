@@ -3,6 +3,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- Global State ---
     let appData = {};
 
+    /** Neutral avatar when Sessionize has no photo (avoids broken img + alt clutter) */
+    const SPEAKER_PLACEHOLDER_IMAGE = 'data:image/svg+xml,' + encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">'
+        + '<rect width="128" height="128" fill="#3c4d63"/>'
+        + '<circle cx="64" cy="52" r="22" fill="#d5dbdb" opacity="0.35"/>'
+        + '<ellipse cx="64" cy="108" rx="40" ry="28" fill="#d5dbdb" opacity="0.25"/>'
+        + '</svg>'
+    );
+
+    function speakerPhotoUrl(speaker) {
+        const u = speaker?.profilePicture;
+        return (typeof u === 'string' && u.trim()) ? u.trim() : SPEAKER_PLACEHOLDER_IMAGE;
+    }
+
+    /** Sessionize may mix string/UUID types between session.speakers[] and speaker.id */
+    function speakerIdsMatch(a, b) {
+        return String(a) === String(b);
+    }
+
+    function sessionHasSpeaker(session, speakerId) {
+        return Array.isArray(session.speakers)
+            && session.speakers.some((sid) => speakerIdsMatch(sid, speakerId));
+    }
+
     // --- Elements ---
     const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
     const navUl = document.querySelector('nav ul');
@@ -137,7 +161,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             appData.schedule = appData.schedule || [];
         }
 
+        // Always arrays so schedule page never bails on !appData.schedule / .map (stuck on "Loading…")
+        appData.speakers = Array.isArray(appData.speakers) ? appData.speakers : [];
+        appData.schedule = Array.isArray(appData.schedule) ? appData.schedule : [];
+
+        applySpeakerDisplayFlags();
         initApp();
+    }
+
+    /** Speakers grid order only (no keynote/fireside badges on speakers page). */
+    function applySpeakerDisplayFlags() {
+        const speakers = appData.speakers;
+        if (!Array.isArray(speakers) || speakers.length === 0) return;
+
+        speakers.forEach((sp) => {
+            sp.isTopSpeaker = sp.isTopSpeaker === true;
+        });
+
+        speakers.sort((a, b) => {
+            if (a.isTopSpeaker !== b.isTopSpeaker) return a.isTopSpeaker ? -1 : 1;
+            return 0;
+        });
     }
 
     function mapSessionizeAll(raw) {
@@ -147,33 +191,67 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const categoryMap = {};
+        /** Session format item IDs: Keynote / Fireside (discovered from API; no hardcoded talk ids) */
+        const keynoteFormatItemIds = new Set();
+        const firesideFormatItemIds = new Set();
         if (Array.isArray(raw.categories)) {
-            raw.categories.forEach(cat => {
+            raw.categories.forEach((cat) => {
+                const isSessionFormat = cat.type === 'session'
+                    || (cat.title && String(cat.title).trim().toLowerCase() === 'session format');
                 if (Array.isArray(cat.items)) {
-                    cat.items.forEach(item => { categoryMap[item.id] = item.name; });
+                    cat.items.forEach((item) => {
+                        categoryMap[item.id] = item.name;
+                        if (!isSessionFormat) return;
+                        const nm = String(item.name || '').trim().toLowerCase();
+                        if (nm === 'keynote') keynoteFormatItemIds.add(String(item.id));
+                        if (nm === 'fireside') firesideFormatItemIds.add(String(item.id));
+                    });
                 }
             });
         }
+
+        /** Optional Sessionize session UUIDs treated as fireside until Session format includes a Fireside item */
+        const firesideSessionIds = new Set((appData.config?.fireside_session_ids || []).map(String));
 
         const speakers = (raw.speakers || []).map(s => ({
             id: s.id,
             fullName: s.fullName || '',
             tagLine: s.tagLine || '',
             bio: s.bio || '',
-            profilePicture: s.profilePicture || '',
+            profilePicture: (s.profilePicture && String(s.profilePicture).trim()) ? String(s.profilePicture).trim() : '',
+            isTopSpeaker: s.isTopSpeaker === true,
         }));
 
-        const keynoteIds = new Set((appData.config?.keynote_session_ids || []).map(String));
-
         const schedule = (raw.sessions || [])
-            .filter(s => s.status === 'Accepted')
+            .filter(s => String(s.status || '').toLowerCase() === 'accepted')
             .map(s => {
                 const categoryNames = Array.isArray(s.categoryItems)
                     ? s.categoryItems.map(id => categoryMap[id]).filter(Boolean)
                     : [];
+                const hasKeynoteFormat = Array.isArray(s.categoryItems)
+                    && s.categoryItems.some((cid) => keynoteFormatItemIds.has(String(cid)));
                 const isKeynote = s.isPlenumSession === true
-                    || categoryNames.some(n => n.toLowerCase() === 'keynote')
-                    || keynoteIds.has(String(s.id));
+                    || hasKeynoteFormat
+                    || categoryNames.some(n => String(n).trim().toLowerCase() === 'keynote');
+                const hasFiresideFormat = Array.isArray(s.categoryItems)
+                    && s.categoryItems.some((cid) => firesideFormatItemIds.has(String(cid)));
+                const isFireside = !isKeynote && (
+                    hasFiresideFormat
+                    || firesideSessionIds.has(String(s.id))
+                );
+                let labels = categoryNames.filter(
+                    (n) => String(n).trim().toLowerCase() !== 'keynote'
+                );
+                if (isFireside) {
+                    labels = labels.filter((n) => {
+                        const x = String(n).trim().toLowerCase();
+                        return x !== 'session' && x !== 'fireside';
+                    });
+                }
+                let category = labels.length > 0 ? labels[0] : 'General';
+                if (isFireside && category === 'General') category = 'Fireside';
+                // Keynote format-only sessions had "Keynote" stripped from labels → General; track filter must be Keynote
+                if (isKeynote && category === 'General') category = 'Keynote';
                 return {
                     id: String(s.id),
                     title: s.title || '',
@@ -182,28 +260,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                     endsAt: s.endsAt || null,
                     speakers: Array.isArray(s.speakers) ? s.speakers : [],
                     room: s.roomId != null ? (roomMap[s.roomId] || 'TBC') : 'TBC',
-                    category: categoryNames.length > 0 ? categoryNames[0] : 'General',
+                    category,
                     isKeynote,
+                    isFireside,
                 };
             });
 
-        // Sort: keynotes first, then chronologically; sessions with no time go last
+        // Sort strictly by start time (Keynote / Fireside do not reorder sessions)
         schedule.sort((a, b) => {
-            if (a.isKeynote !== b.isKeynote) return a.isKeynote ? -1 : 1;
             if (!a.startsAt && !b.startsAt) return 0;
             if (!a.startsAt) return 1;
             if (!b.startsAt) return -1;
-            return new Date(a.startsAt) - new Date(b.startsAt);
+            const startCmp = new Date(a.startsAt) - new Date(b.startsAt);
+            if (startCmp !== 0) return startCmp;
+            if (!a.endsAt && !b.endsAt) return 0;
+            if (!a.endsAt) return 1;
+            if (!b.endsAt) return -1;
+            return new Date(a.endsAt) - new Date(b.endsAt);
         });
-
-        // Mark speakers who present a keynote
-        const keynoteSpeakerIds = new Set(
-            schedule.filter(s => s.isKeynote).flatMap(s => s.speakers)
-        );
-        speakers.forEach(sp => { sp.isKeynote = keynoteSpeakerIds.has(sp.id); });
-
-        // Sort speakers: keynote speakers first, then original order
-        speakers.sort((a, b) => (a.isKeynote === b.isKeynote ? 0 : a.isKeynote ? -1 : 1));
 
         return { speakers, schedule };
     }
@@ -275,7 +349,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- Render Functions ---
 
     function escapeHtml(str) {
-        return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
     function escapeAttr(str) {
@@ -335,16 +409,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function openSpeakerModal(speaker, { updateHash = true } = {}) {
         ensureSpeakerModal();
-        document.getElementById('speaker-modal-photo').src = speaker.profilePicture;
+        document.getElementById('speaker-modal-photo').src = speakerPhotoUrl(speaker);
         document.getElementById('speaker-modal-photo').alt = speaker.fullName;
         document.getElementById('speaker-modal-name').textContent = speaker.fullName;
-        document.getElementById('speaker-modal-tagline').textContent = speaker.tagLine;
+        document.getElementById('speaker-modal-tagline').textContent = speaker.tagLine || '';
         document.getElementById('speaker-modal-bio').innerHTML = formatBio(speaker.bio);
 
         const sessionsEl = document.getElementById('speaker-modal-sessions');
-        const speakerSessions = (appData.schedule || []).filter(s =>
-            Array.isArray(s.speakers) && s.speakers.includes(speaker.id)
-        );
+        const speakerSessions = (appData.schedule || []).filter((s) => sessionHasSpeaker(s, speaker.id));
         if (speakerSessions.length > 0) {
             sessionsEl.innerHTML = speakerSessions
                 .map(s => `<div class="speaker-modal-session-item">&ndash; ${escapeHtml(s.title)}</div>`)
@@ -373,19 +445,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        container.innerHTML = appData.speakers.map(speaker => `
-            <div class="speaker-card-full${speaker.isKeynote ? ' speaker-card--keynote' : ''}" id="speaker-${escapeHtml(speakerSlug(speaker.fullName))}" data-speaker-id="${escapeHtml(speaker.id)}" role="button" tabindex="0" aria-label="View ${escapeHtml(speaker.fullName)} profile">
-                <div class="speaker-img-wrapper${speaker.isKeynote ? ' speaker-img-wrapper--keynote' : ''}">
-                    <img src="${escapeHtml(speaker.profilePicture)}" alt="${escapeHtml(speaker.fullName)}" loading="lazy">
+        container.innerHTML = appData.speakers.map(speaker => {
+            const photo = escapeHtml(speakerPhotoUrl(speaker));
+            const tag = speaker.tagLine ? escapeHtml(speaker.tagLine) : '';
+            const titleRow = tag
+                ? `<div class="speaker-title">${tag}</div>`
+                : '<div class="speaker-title speaker-title--empty" aria-hidden="true"></div>';
+            return `
+            <div class="speaker-card-full" id="speaker-${escapeHtml(speakerSlug(speaker.fullName))}" data-speaker-id="${escapeHtml(speaker.id)}" role="button" tabindex="0" aria-label="View ${escapeHtml(speaker.fullName)} profile">
+                <div class="speaker-img-wrapper">
+                    <img src="${photo}" alt="" loading="lazy">
                 </div>
                 <div class="speaker-name">${escapeHtml(speaker.fullName)}</div>
-                <div class="speaker-title">${escapeHtml(speaker.tagLine)}</div>
-                ${speaker.isKeynote ? '<div class="speaker-keynote-badge">&#9733; Keynote</div>' : ''}
+                ${titleRow}
             </div>
-        `).join('');
+        `;
+        }).join('');
 
         container.querySelectorAll('.speaker-card-full').forEach(card => {
-            const speaker = appData.speakers.find(s => s.id === card.dataset.speakerId);
+            const speaker = appData.speakers.find(s => speakerIdsMatch(s.id, card.dataset.speakerId));
             if (!speaker) return;
             card.addEventListener('click', () => openSpeakerModal(speaker));
             card.addEventListener('keydown', e => {
@@ -438,7 +516,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // Dynamically populate track filter based on actual schedule categories
-        if (trackSelect && appData.schedule) {
+        if (trackSelect && Array.isArray(appData.schedule)) {
             // Get unique categories from schedule
             const categories = [...new Set(appData.schedule.map(s => s.category).filter(Boolean))];
 
@@ -529,10 +607,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (timezonePref === 'local') {
                 const startTime = startDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
                 const endTime = endDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-                const startDateLocal = startDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
-                const endDateLocal = endDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
                 timeStr = `${startTime} - ${endTime}`;
-                dateStr = startDateLocal !== endDateLocal ? `${startDateLocal} - ${endDateLocal}` : startDateLocal;
+                // Date line: calendar day in event timezone (event day), not local — avoids wrong day at TZ boundaries
+                const dateOptsEvt = { month: 'short', day: 'numeric', timeZone: eventTimezone };
+                const startDateEvt = startDate.toLocaleDateString('en-NZ', dateOptsEvt);
+                const endDateEvt = endDate.toLocaleDateString('en-NZ', dateOptsEvt);
+                dateStr = startDateEvt !== endDateEvt ? `${startDateEvt} - ${endDateEvt}` : startDateEvt;
                 timezoneSubtext = 'Your Time';
             } else if (timezonePref === 'custom') {
                 try {
@@ -594,8 +674,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         const eventTimezone = 'Pacific/Auckland';
         const t = sessionTimeFields(session, timezonePref, eventTimezone);
 
+        const isKey = !!session.isKeynote;
+        const isFs = !!session.isFireside && !isKey;
+        const modalFormat = isKey
+            ? '<span class="tag tag--keynote">&#9733; Keynote</span>'
+            : (isFs ? '<span class="tag tag--fireside">&#9733; Fireside</span>' : '');
+        const catLower = String(session.category || '').trim().toLowerCase();
+        const modalShowCategory = (!isKey || (catLower !== 'general' && catLower !== 'keynote'))
+            && (!isFs || catLower !== 'fireside');
+        const modalCategory = modalShowCategory
+            ? `<span class="tag">${escapeHtml(session.category)}</span>`
+            : '';
         document.getElementById('schedule-modal-meta').innerHTML = `
-            <span class="tag">${escapeHtml(session.category)}</span>
+            ${modalFormat}
+            ${modalCategory}
             <span class="schedule-modal-room">${escapeHtml(session.room)}</span>
         `;
         document.getElementById('schedule-modal-time').innerHTML = `
@@ -612,12 +704,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             descEl.innerHTML = '';
             descEl.style.display = 'none';
         }
-        const speakers = (session.speakers || []).map(id => appData.speakers.find(s => s.id === id)).filter(Boolean);
+        const speakers = (session.speakers || []).map((id) => appData.speakers.find((s) => speakerIdsMatch(s.id, id))).filter(Boolean);
         const spEl = document.getElementById('schedule-modal-speakers');
         if (speakers.length) {
             spEl.innerHTML = speakers.map(s => `
                 <div class="session-speaker session-speaker--clickable" data-speaker-id="${escapeHtml(s.id)}" role="button" tabindex="0" aria-label="View ${escapeAttr(s.fullName)} profile">
-                    <img src="${escapeHtml(s.profilePicture)}" alt="${escapeHtml(s.fullName)}">
+                    <img src="${escapeHtml(speakerPhotoUrl(s))}" alt="">
                     <span>${escapeHtml(s.fullName)}</span>
                 </div>
             `).join('');
@@ -700,17 +792,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function renderSchedule() {
         const container = document.getElementById('schedule-container');
-        if (!container || !appData.schedule) return;
+        if (!container) return;
 
+        const schedule = Array.isArray(appData.schedule) ? appData.schedule : [];
         const timezonePref = document.getElementById('filter-timezone')?.value || 'local';
         const trackPref = document.getElementById('filter-track')?.value || 'all';
         const eventTimezone = 'Pacific/Auckland';
 
         function normalizeCategory(category) {
-            return category.toLowerCase().replace(/[\/\s]/g, '');
+            return String(category ?? '').toLowerCase().replace(/[\/\s]/g, '');
         }
 
-        let sessions = appData.schedule;
+        let sessions = schedule;
         if (trackPref !== 'all') {
             sessions = sessions.filter(s => normalizeCategory(s.category) === trackPref);
         }
@@ -720,20 +813,31 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        try {
         container.innerHTML = sessions.map(session => {
             const t = sessionTimeFields(session, timezonePref, eventTimezone);
-            const speakers = (session.speakers || []).map(id => appData.speakers.find(s => s.id === id)).filter(Boolean);
+            const speakers = (session.speakers || []).map((id) => appData.speakers.find((s) => speakerIdsMatch(s.id, id))).filter(Boolean);
             const speakerHtml = speakers.map(s => `
                 <div class="session-speaker session-speaker--clickable" data-speaker-id="${escapeHtml(s.id)}" role="button" tabindex="0" aria-label="View ${escapeAttr(s.fullName)} profile">
-                    <img src="${escapeHtml(s.profilePicture)}" alt="${escapeHtml(s.fullName)}">
+                    <img src="${escapeHtml(speakerPhotoUrl(s))}" alt="">
                     <span>${escapeHtml(s.fullName)}</span>
                 </div>
             `).join('');
 
-            const keynoteClass = session.isKeynote ? ' session-card--keynote' : '';
-            const keynoteTag = session.isKeynote ? '<span class="tag tag--keynote">&#9733; Keynote</span>' : '';
+            const isKey = !!session.isKeynote;
+            const isFs = !!session.isFireside && !isKey;
+            const formatClass = isKey ? ' session-card--keynote' : (isFs ? ' session-card--fireside' : '');
+            const formatTag = isKey
+                ? '<span class="tag tag--keynote">&#9733; Keynote</span>'
+                : (isFs ? '<span class="tag tag--fireside">&#9733; Fireside</span>' : '');
+            const catLower = String(session.category || '').trim().toLowerCase();
+            const showCategoryTag = (!isKey || (catLower !== 'general' && catLower !== 'keynote'))
+                && (!isFs || catLower !== 'fireside');
+            const categoryTag = showCategoryTag
+                ? `<span class="tag">${escapeHtml(session.category)}</span>`
+                : '';
             return `
-                <div class="session-card session-card--interactive${keynoteClass}" data-session-id="${escapeHtml(session.id)}" role="button" tabindex="0" aria-label="View details: ${escapeAttr(session.title)}">
+                <div class="session-card session-card--interactive${formatClass}" data-session-id="${escapeHtml(session.id)}" role="button" tabindex="0" aria-label="View details: ${escapeAttr(session.title)}">
                     <div class="session-time">
                         ${t.dateStr ? `<div class="session-time-date">${escapeHtml(t.dateStr)}</div>` : ''}
                         <div>${escapeHtml(t.timeStr)}${escapeHtml(t.timezoneAbbr)}</div>
@@ -741,8 +845,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                     <div class="session-details">
                         <div class="session-meta">
-                            ${keynoteTag}
-                            <span class="tag">${escapeHtml(session.category)}</span>
+                            ${formatTag}
+                            ${categoryTag}
                             <span>${escapeHtml(session.room)}</span>
                         </div>
                         <div class="session-title">${escapeHtml(session.title)}</div>
@@ -754,6 +858,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </div>
             `;
         }).join('');
+        } catch (e) {
+            console.error('renderSchedule:', e);
+            container.innerHTML = '<p style="text-align: center; font-size: 1.2rem; margin-top: 2rem;">Could not render the schedule. Please refresh the page.</p>';
+        }
     }
     // 4. Home Page Logic
     function initHomePage() {
