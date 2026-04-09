@@ -923,9 +923,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Not CFP phase, ensure countdown is visible
                 if (countdownContainer) countdownContainer.style.display = 'flex';
 
-                const msg = document.createElement('span');
-                msg.textContent = 'Registration coming soon';
-                heroCtaContainer.appendChild(msg);
+                const watchWrap = document.createElement('div');
+                watchWrap.className = 'hero-watch';
+                watchWrap.innerHTML = `
+                    <span class="hero-watch-label">Watch live on:</span>
+                    <div class="hero-watch-links">
+                        <a class="hero-watch-link" href="https://www.twitch.tv/awscdo" target="_blank" rel="noopener noreferrer">
+                            <i class="fa-brands fa-twitch" aria-hidden="true"></i>
+                            <span>Twitch</span>
+                        </a>
+                        <a class="hero-watch-link" href="https://www.youtube.com/@AWSCDO" target="_blank" rel="noopener noreferrer">
+                            <i class="fa-brands fa-youtube" aria-hidden="true"></i>
+                            <span>YouTube</span>
+                        </a>
+                    </div>
+                `.trim();
+                heroCtaContainer.appendChild(watchWrap);
                 if (cfpSection) cfpSection.style.display = 'none';
 
                 // Only start countdown if NOT in CFP mode
