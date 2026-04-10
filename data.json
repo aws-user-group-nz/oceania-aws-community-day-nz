@@ -7,6 +7,7 @@
     "cfp_link": "https://sessionize.com/oceania-virtual-aws-community-day",
     "registration_enabled": false,
     "live_stream_link": "https://www.twitch.tv/awscdo",
+    "live_stream_youtube_link": "https://www.youtube.com/watch?v=XU_3JL-80T4",
     "sessionize_api_url": "https://sessionize.com/api/v2/10u5qims/view/All",
     "fireside_session_ids": ["1192624"],
     "hero_headline": "AWS Oceania Virtual Community Day 2026",
@@ -164,7 +165,7 @@
     },
     {
       "question": "How do I access the live stream?",
-      "answer": "Click the 'Watch Live Now' button on the homepage, or visit our Twitch channel directly. The link will be available on the event day.",
+      "answer": "Use the <strong>Watch live now</strong> YouTube and Twitch links at the top of the page, or open <a href=\"https://www.youtube.com/watch?v=XU_3JL-80T4\" target=\"_blank\" rel=\"noopener noreferrer\">YouTube</a> or <a href=\"https://www.twitch.tv/awscdo\" target=\"_blank\" rel=\"noopener noreferrer\">Twitch</a> directly.",
       "phase": "event"
     },
     {

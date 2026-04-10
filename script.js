@@ -899,13 +899,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (countdownContainer) countdownContainer.style.display = 'none';
 
             } else if (currentPhase === 'event') {
-                // Event Day (Watch Live)
-                const btn = document.createElement('a');
-                btn.href = appData.config.live_stream_link;
-                btn.className = 'btn btn-primary';
-                btn.textContent = 'Watch Live Now 🔴';
-                btn.target = '_blank';
-                heroCtaContainer.appendChild(btn);
+                // Event Day: Twitch + YouTube (pill links match pre-event hero-watch styling)
+                const twitchUrl = appData.config.live_stream_link || 'https://www.twitch.tv/awscdo';
+                const youtubeUrl =
+                    appData.config.live_stream_youtube_link
+                    || appData.config.socials?.youtube
+                    || 'https://www.youtube.com/@awscdo';
+                const watchWrap = document.createElement('div');
+                watchWrap.className = 'hero-watch';
+                watchWrap.innerHTML = `
+                    <span class="hero-watch-label">Watch live now:</span>
+                    <div class="hero-watch-links">
+                        <a class="hero-watch-link" href="${escapeAttr(twitchUrl)}" target="_blank" rel="noopener noreferrer">
+                            <i class="fa-brands fa-twitch" aria-hidden="true"></i>
+                            <span>Twitch</span>
+                        </a>
+                        <a class="hero-watch-link" href="${escapeAttr(youtubeUrl)}" target="_blank" rel="noopener noreferrer">
+                            <i class="fa-brands fa-youtube" aria-hidden="true"></i>
+                            <span>YouTube</span>
+                        </a>
+                    </div>
+                `.trim();
+                heroCtaContainer.appendChild(watchWrap);
                 if (cfpSection) cfpSection.style.display = 'none';
 
             } else if (currentPhase === 'registration' && appData.config.registration_enabled) {
@@ -923,16 +938,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Not CFP phase, ensure countdown is visible
                 if (countdownContainer) countdownContainer.style.display = 'flex';
 
+                const twitchUrl = appData.config.live_stream_link || 'https://www.twitch.tv/awscdo';
+                const youtubeUrl = appData.config.socials?.youtube || 'https://www.youtube.com/@awscdo';
                 const watchWrap = document.createElement('div');
                 watchWrap.className = 'hero-watch';
                 watchWrap.innerHTML = `
                     <span class="hero-watch-label">Watch live on:</span>
                     <div class="hero-watch-links">
-                        <a class="hero-watch-link" href="https://www.twitch.tv/awscdo" target="_blank" rel="noopener noreferrer">
+                        <a class="hero-watch-link" href="${escapeAttr(twitchUrl)}" target="_blank" rel="noopener noreferrer">
                             <i class="fa-brands fa-twitch" aria-hidden="true"></i>
                             <span>Twitch</span>
                         </a>
-                        <a class="hero-watch-link" href="https://www.youtube.com/@AWSCDO" target="_blank" rel="noopener noreferrer">
+                        <a class="hero-watch-link" href="${escapeAttr(youtubeUrl)}" target="_blank" rel="noopener noreferrer">
                             <i class="fa-brands fa-youtube" aria-hidden="true"></i>
                             <span>YouTube</span>
                         </a>
