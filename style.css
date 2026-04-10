@@ -313,7 +313,7 @@ nav a.active {
 .hero-watch-label {
   font-weight: 600;
   letter-spacing: 0.02em;
-  opacity: 0.95;
+  color: var(--color-smile-orange);
 }
 
 .hero-watch-links {
@@ -333,6 +333,9 @@ nav a.active {
   background: rgba(0, 0, 0, 0.18);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  color: rgba(255, 255, 255, 0.96);
+  text-decoration: none;
+  font-weight: 600;
   transition: transform var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
 }
 
@@ -1021,4 +1024,22 @@ footer {
     align-items: center;
     text-align: center;
   }
+}
+
+/* FAQ: links inside answers inherit muted paragraph color — make them visibly clickable */
+#faq-container a:not(.btn) {
+  color: var(--color-smile-orange);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+#faq-container a:not(.btn):hover {
+  color: var(--color-smile-orange-hover);
+}
+
+#faq-container a:not(.btn):focus-visible {
+  outline: 2px solid var(--color-smile-orange);
+  outline-offset: 2px;
 }
